@@ -4,6 +4,9 @@
 # or operating system, you probably want to add a global ignore instead:
 #   git config --global core.excludesfile ~/.gitignore_global
 
+# Ignore the above advice and ignore Sublime Text workspace files
+*.sublime-workspace
+
 # Ignore bundler config
 /.bundle
 
