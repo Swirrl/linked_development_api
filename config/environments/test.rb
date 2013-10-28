@@ -32,4 +32,10 @@ LinkedDevelopmentApi::Application.configure do
 
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
+
+  Tripod.configure do |config|
+    config.query_endpoint   = 'http://localhost:3030/linkeddev-test/sparql'
+    config.data_endpoint    = 'http://localhost:3030/linkeddev-test/data'
+    config.update_endpoint  = 'http://localhost:3030/linkeddev-test/update'
+  end
 end

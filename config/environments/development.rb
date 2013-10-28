@@ -28,4 +28,11 @@ LinkedDevelopmentApi::Application.configure do
 
   # Expands the lines which load the assets
   config.assets.debug = true
+
+  # for hacking on rails console
+  Tripod.configure do |config|
+    config.query_endpoint   = 'http://localhost:3030/linkeddev-dev/sparql'
+    config.data_endpoint    = 'http://localhost:3030/linkeddev-dev/data'
+    config.update_endpoint  = 'http://localhost:3030/linkeddev-dev/update'
+  end
 end
