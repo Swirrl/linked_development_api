@@ -7,6 +7,10 @@
 # Ignore the above advice and ignore Sublime Text workspace files
 *.sublime-workspace
 
+# Ignore unpacked n-triples files in data/ because they're huge
+# (but note than running `gunzip` on the .gz files will delete them)
+/data/*.nt
+
 # Ignore bundler config
 /.bundle
 
