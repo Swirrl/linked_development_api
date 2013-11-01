@@ -21,6 +21,28 @@ end
 
 gem 'jquery-rails'
 
+group :test, :development do
+	gem 'awesome_print', require: 'ap'
+end
+
+group :development do
+  gem 'spring'
+  gem 'spring-commands-rspec', require: false
+end
+
+group :test do
+  gem 'rspec-rails'
+  gem 'fuubar' # RSpec formatter
+end
+
+group :install_only do
+  gem 'pry'
+  gem 'guard'
+  gem 'guard-rspec'
+  gem 'rb-fsevent'
+  gem 'terminal-notifier-guard'
+end
+
 # To use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'
 
