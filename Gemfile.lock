@@ -211,6 +211,8 @@ DEPENDENCIES
   pry
   rails (= 3.2.15)
   rb-fsevent
+  rdf
+  rdf-turtle
   rspec-rails
   sass-rails (~> 3.2.3)
   spring
