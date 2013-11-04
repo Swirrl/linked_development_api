@@ -1,7 +1,8 @@
 guard :rspec,
-  all_on_start:   true, # Enabled while the project is young :-)
-  all_after_pass: true,
-  cmd:            "spring rspec --format Fuubar" do
+  all_on_start:     true, # Enabled while the project is young :-)
+  all_after_pass:   true,
+  focus_on_failed:  false, # This is just annoying
+  cmd:              "spring rspec --format Fuubar" do
 
   watch(%r{^spec/.+_spec\.rb$})
   watch(%r{^lib/(.+)\.rb$})     { |m| "spec/lib/#{m[1]}_spec.rb" }
