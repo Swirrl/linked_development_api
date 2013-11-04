@@ -2,8 +2,10 @@
 
 ## Importing initial data
 
-Initial data for the two datasets (ELDIS and Research for Development is stored in the `data` folder). For now, you can import it into Fuseki with the following commands:
+Initial data for the two datasets (ELDIS and Research for Development is stored in the `data` folder). For now, you can import it into Fuseki with the following command:
 
-    curl -X PUT --data-binary @data/eldis.nt -H 'Content-Type: application/n-triples' 'http://localhost:3030/linkeddev-dev/data?graph=http://linked-development.org/eldis/'
+    rake data:load:development
 
-    curl -X PUT --data-binary @data/r4d.nt -H 'Content-Type: application/n-triples' 'http://localhost:3030/linkeddev-dev/data?graph=http://linked-development.org/r4d/'
+Note that the initial tests are written against existing sample API output, so you need to load the test data for this too:
+
+    rake data:load:test
