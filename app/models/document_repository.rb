@@ -1,4 +1,5 @@
 require 'rdf/vocab/faogeopol'
+require 'rdf/vocab/bibo'
 
 # NOTE:
 #  Comments beginning PHP: are copied from the original PHP source
@@ -299,6 +300,12 @@ class DocumentRepository
         document["category_region_ids"] << coverage_id
         document["category_region_objects"] << "#{coverage_id}|region|#{label}"
       end
+
+      document["urls"] = graph.query(
+        RDF::Query.new do
+          pattern [:document, RDF::Bibo.uri, :url]
+        end
+      ).map { |solution| solution["url"].to_s }
     end
 
     document

@@ -63,6 +63,7 @@ describe DocumentService do
       }
       specify { expect(document["country_focus"]).to be == ["Thailand"] }
       specify { expect(document["country_focus_ids"]).to be == ["TH"] }
+      specify { expect(document["urls"]).to be == [ ] }
     end
 
     describe "JSON output" do
@@ -188,5 +189,22 @@ describe DocumentService do
         expect(example_theme["object_id"]).to be == "c_1972"
       end
     end
+  end
+
+  context "Multiple URLs (R4D document 182614)" do
+    let(:document) { service.get(type: "r4d", id: "182614", detail: "full") }
+    let(:json_output) { document.to_json }
+    let(:parsed_json_output) { JSON.parse(json_output) }
+
+    # This is a deviation from the original API which returned a single URL
+    specify {
+      expect(parsed_json_output["urls"]).to match_array(
+        %w[
+          http://r4d.dfid.gov.uk/PDF/Outputs/HPAI/WKS0801_2010_report.pdf
+          http://r4d.dfid.gov.uk/PDF/Outputs/HPAI/WKS0801_2010_agenda.pdf
+          http://r4d.dfid.gov.uk/PDF/Outputs/HPAI/WKS0801_2010_participants.pdf
+        ]
+      )
+    }
   end
 end
