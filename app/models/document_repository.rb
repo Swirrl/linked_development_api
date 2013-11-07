@@ -188,7 +188,7 @@ class DocumentRepository
       end
     )
     if publisher_solution = publisher_solutions.first
-      document["publisher"]       = publisher_solution.publisher_name
+      document["publisher"]       = publisher_solution.publisher_name.object
     else
       document["publisher"]       = nil
     end
