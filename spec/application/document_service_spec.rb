@@ -158,7 +158,7 @@ describe DocumentService do
   # I looked into the data an it appears *all* of the ELDIS documents have
   # website URLs, and none of the R4D ones do. We may or may not want to be
   # more explicit about this in future.
-  context "No website URL (R4D document 187524)" do
+  context "No website URL (R4D document 173629)" do
     let(:document) { service.get(type: "r4d", id: "173629", detail: "full") }
     let(:json_output) { document.to_json }
     let(:parsed_json_output) { JSON.parse(json_output) }
