@@ -216,7 +216,7 @@ class DocumentRepository
     #
     # PHP: EasyRDF is currently not getting all the subjects as it should.
     #      See https://github.com/practicalparticipation/ldapi/issues/4
-    document["category_theme_array"]  = [ ]
+    document["category_theme_array"]  = { "theme" => [ ] }
     document["category_theme_ids"]    = [ ]
     theme_solutions = graph.query(
       RDF::Query.new do
@@ -233,7 +233,7 @@ class DocumentRepository
           URI.parse(theme_solution["theme"].to_s).path.split("/").last
         end
 
-      document["category_theme_array"] << {
+      document["category_theme_array"]["theme"] << {
         "archived"    => "false",   # Original PHP was a hard-coded string
         "level"       => "unknown", # Original PHP was a hard-coded string
         # We need a route generator to do metadata_url

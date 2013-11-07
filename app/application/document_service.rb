@@ -22,7 +22,7 @@ class DocumentService
     )
 
     {
-      "result" => result,
+      "results" => [result],
       "metadata" => {
         "num_results"   => "Unknown",
         "start_offset"  => 0

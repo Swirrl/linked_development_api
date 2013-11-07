@@ -9,7 +9,7 @@ describe DocumentService do
 
   context "ELDIS document A64559" do
     let(:response) { service.get(type: "eldis", id: "A64559", detail: "full") }
-    let(:document) { response["result"] }
+    let(:document) { response["results"].first }
 
     describe "document content" do
       specify { expect(document["object_type"]).to be       == "Document" }
@@ -22,7 +22,7 @@ describe DocumentService do
       specify { expect(document["site"]).to be              == "eldis" }
       specify { expect(document["website_url"]).to be       == "http:\/\/www.eldis.org\/go\/display?type=Document&id=64559" }
       specify {
-        expect(document["category_theme_array"]).to match_array(
+        expect(document["category_theme_array"]["theme"]).to match_array(
           [
             {
                  "archived"     => "false",
@@ -79,7 +79,6 @@ describe DocumentService do
       let(:json_output) { response.to_json }
 
       example "complete document" do
-        pending "TODO"
         expect(
           JSON.parse(json_output)
         ).to be == JSON.parse(sample_file("eldis_document_A64559.json"))
@@ -89,7 +88,7 @@ describe DocumentService do
 
   context "Multiple creators (ELDIS document A64840)" do
     let(:response) { service.get(type: "eldis", id: "A64840", detail: "full") }
-    let(:document) { response["result"] }
+    let(:document) { response["results"].first }
 
     specify {
       expect(document["author"]).to match_array(
@@ -100,7 +99,7 @@ describe DocumentService do
 
   context "No publisher (ELDIS document A64882)" do
     let(:response) { service.get(type: "eldis", id: "A64882", detail: "full") }
-    let(:document) { response["result"] }
+    let(:document) { response["results"].first }
 
     describe "multiple creators" do
       # Current behaviour, may or may not be correct
@@ -116,7 +115,7 @@ describe DocumentService do
 
   context "Region coverage (ELDIS document A64882)" do
   	let(:response) { service.get(type: "eldis", id: "A64882", detail: "full") }
-    let(:document) { response["result"] }
+    let(:document) { response["results"].first }
 
     describe "region" do
       specify {
@@ -153,7 +152,7 @@ describe DocumentService do
   #  documents not ELDIS ones. I don't know if this is by design or coincidence.
   context "Region (not country) with a UN code (not identifier) (R4D document 187524)" do
     let(:response) { service.get(type: "r4d", id: "187524", detail: "full") }
-    let(:document) { response["result"] }
+    let(:document) { response["results"].first }
 
     specify {
       expect(document["category_region_ids"]).to be == ["UN002"]
@@ -165,7 +164,7 @@ describe DocumentService do
   # more explicit about this in future.
   context "No website URL (R4D document 173629)" do
     let(:response) { service.get(type: "r4d", id: "173629", detail: "full") }
-    let(:document) { response["result"] }
+    let(:document) { response["results"].first }
 
     # Current behaviour, may or may not be correct
     specify {
@@ -179,11 +178,11 @@ describe DocumentService do
 
   context "Theme without an identifier (R4D document 56570)" do
     let(:response) { service.get(type: "r4d", id: "56570", detail: "full") }
-    let(:document) { response["result"] }
+    let(:document) { response["results"].first }
 
     describe "themes" do
       let(:example_theme) {
-        document["category_theme_array"].detect { |theme|
+        document["category_theme_array"]["theme"].detect { |theme|
           theme["object_name"] == "Crops"
         }
       }
@@ -196,7 +195,7 @@ describe DocumentService do
 
   context "Multiple URLs (R4D document 182614)" do
     let(:response) { service.get(type: "r4d", id: "182614", detail: "full") }
-    let(:document) { response["result"] }
+    let(:document) { response["results"].first }
 
     # This is a deviation from the original API which returned a single URL
     specify {
