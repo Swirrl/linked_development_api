@@ -305,7 +305,7 @@ class DocumentRepository
         RDF::Query.new do
           pattern [:document, RDF::Bibo.uri, :url]
         end
-      ).map { |solution| solution["url"].to_s }
+      ).map(&:url).map(&:to_s)
     end
 
     document
