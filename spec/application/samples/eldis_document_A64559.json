@@ -57,8 +57,9 @@
             "publication_year": "2006",
             "publisher": "UNESCO Bangkok",
             "site": "eldis",
+            // NOTE: changed
             "urls": [
-                null
+
             ],
             "website_url": "http:\/\/www.eldis.org\/go\/display?type=Document&id=64559"
         }

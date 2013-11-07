@@ -8,7 +8,8 @@ describe DocumentService do
   end
 
   context "ELDIS document A64559" do
-    let(:document) { service.get(type: "eldis", id: "A64559", detail: "full") }
+    let(:response) { service.get(type: "eldis", id: "A64559", detail: "full") }
+    let(:document) { response["result"] }
 
     describe "document content" do
       specify { expect(document["object_type"]).to be       == "Document" }
@@ -19,7 +20,6 @@ describe DocumentService do
       specify { expect(document["publication_year"]).to be  == "2006" }
       specify { expect(document["publisher"]).to be         == "UNESCO Bangkok" }
       specify { expect(document["site"]).to be              == "eldis" }
-      specify { expect(document["website_url"]).to be_a(String) } # URIs don't convert to JSON nicely
       specify { expect(document["website_url"]).to be       == "http:\/\/www.eldis.org\/go\/display?type=Document&id=64559" }
       specify {
         expect(document["category_theme_array"]).to match_array(
@@ -66,11 +66,20 @@ describe DocumentService do
       specify { expect(document["urls"]).to be == [ ] }
     end
 
+    describe "metadata" do
+      specify {
+        expect(response["metadata"]).to be == {
+            "num_results"   => "Unknown",
+            "start_offset"  => 0
+        }
+      }
+    end
+
     describe "JSON output" do
-      let(:json_output) { document.to_json }
+      let(:json_output) { response.to_json }
 
       example "complete document" do
-        pending "to do at the end"
+        pending "TODO"
         expect(
           JSON.parse(json_output)
         ).to be == JSON.parse(sample_file("eldis_document_A64559.json"))
@@ -79,42 +88,39 @@ describe DocumentService do
   end
 
   context "Multiple creators (ELDIS document A64840)" do
-    let(:document) { service.get(type: "eldis", id: "A64840", detail: "full") }
-    let(:json_output) { document.to_json }
-    let(:parsed_json_output) { JSON.parse(json_output) }
+    let(:response) { service.get(type: "eldis", id: "A64840", detail: "full") }
+    let(:document) { response["result"] }
 
     specify {
-      expect(parsed_json_output["author"]).to match_array(
+      expect(document["author"]).to match_array(
         ["R. Wickramasinghe", "J. Chandrasiri", "C. Anuranga"]
       )
     }
   end
 
   context "No publisher (ELDIS document A64882)" do
-    let(:document) { service.get(type: "eldis", id: "A64882", detail: "full") }
-    let(:json_output) { document.to_json }
-    let(:parsed_json_output) { JSON.parse(json_output) }
+    let(:response) { service.get(type: "eldis", id: "A64882", detail: "full") }
+    let(:document) { response["result"] }
 
     describe "multiple creators" do
       # Current behaviour, may or may not be correct
       specify {
-        expect(parsed_json_output).to have_key("publisher")
+        expect(document).to have_key("publisher")
       }
 
       specify {
-        expect(parsed_json_output["publisher"]).to be_nil
+        expect(document["publisher"]).to be_nil
       }
     end
   end
 
   context "Region coverage (ELDIS document A64882)" do
-  	let(:document) { service.get(type: "eldis", id: "A64882", detail: "full") }
-    let(:json_output) { document.to_json }
-    let(:parsed_json_output) { JSON.parse(json_output) }
+  	let(:response) { service.get(type: "eldis", id: "A64882", detail: "full") }
+    let(:document) { response["result"] }
 
     describe "region" do
       specify {
-        expect(parsed_json_output["category_region_array"]).to be == {
+        expect(document["category_region_array"]).to be == {
           "Region" => [
             {
               "archived"      => "false",
@@ -130,15 +136,15 @@ describe DocumentService do
       }
 
       specify {
-        expect(parsed_json_output["category_region_path"]).to be == ["South Asia"]
+        expect(document["category_region_path"]).to be == ["South Asia"]
       }
 
       specify {
-        expect(parsed_json_output["category_region_ids"]).to be == ["C30"]
+        expect(document["category_region_ids"]).to be == ["C30"]
       }
 
       specify {
-      	expect(parsed_json_output["category_region_objects"]).to be == ["C30|region|South Asia"]
+      	expect(document["category_region_objects"]).to be == ["C30|region|South Asia"]
       }
     end
   end
@@ -146,12 +152,11 @@ describe DocumentService do
   # I looked into the data and it appears this is only ever used for R4D,
   #  documents not ELDIS ones. I don't know if this is by design or coincidence.
   context "Region (not country) with a UN code (not identifier) (R4D document 187524)" do
-    let(:document) { service.get(type: "r4d", id: "187524", detail: "full") }
-    let(:json_output) { document.to_json }
-    let(:parsed_json_output) { JSON.parse(json_output) }
+    let(:response) { service.get(type: "r4d", id: "187524", detail: "full") }
+    let(:document) { response["result"] }
 
     specify {
-      expect(parsed_json_output["category_region_ids"]).to be == ["UN002"]
+      expect(document["category_region_ids"]).to be == ["UN002"]
     }
   end
 
@@ -159,28 +164,26 @@ describe DocumentService do
   # website URLs, and none of the R4D ones do. We may or may not want to be
   # more explicit about this in future.
   context "No website URL (R4D document 173629)" do
-    let(:document) { service.get(type: "r4d", id: "173629", detail: "full") }
-    let(:json_output) { document.to_json }
-    let(:parsed_json_output) { JSON.parse(json_output) }
+    let(:response) { service.get(type: "r4d", id: "173629", detail: "full") }
+    let(:document) { response["result"] }
 
     # Current behaviour, may or may not be correct
     specify {
-      expect(parsed_json_output).to have_key("website_url")
+      expect(document).to have_key("website_url")
     }
 
     specify {
-      expect(parsed_json_output["website_url"]).to be_nil
+      expect(document["website_url"]).to be_nil
     }
   end
 
   context "Theme without an identifier (R4D document 56570)" do
-    let(:document) { service.get(type: "r4d", id: "56570", detail: "full") }
-    let(:json_output) { document.to_json }
-    let(:parsed_json_output) { JSON.parse(json_output) }
+    let(:response) { service.get(type: "r4d", id: "56570", detail: "full") }
+    let(:document) { response["result"] }
 
     describe "themes" do
       let(:example_theme) {
-        parsed_json_output["category_theme_array"].detect { |theme|
+        document["category_theme_array"].detect { |theme|
           theme["object_name"] == "Crops"
         }
       }
@@ -192,13 +195,12 @@ describe DocumentService do
   end
 
   context "Multiple URLs (R4D document 182614)" do
-    let(:document) { service.get(type: "r4d", id: "182614", detail: "full") }
-    let(:json_output) { document.to_json }
-    let(:parsed_json_output) { JSON.parse(json_output) }
+    let(:response) { service.get(type: "r4d", id: "182614", detail: "full") }
+    let(:document) { response["result"] }
 
     # This is a deviation from the original API which returned a single URL
     specify {
-      expect(parsed_json_output["urls"]).to match_array(
+      expect(document["urls"]).to match_array(
         %w[
           http://r4d.dfid.gov.uk/PDF/Outputs/HPAI/WKS0801_2010_report.pdf
           http://r4d.dfid.gov.uk/PDF/Outputs/HPAI/WKS0801_2010_agenda.pdf

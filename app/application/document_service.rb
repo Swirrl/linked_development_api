@@ -21,6 +21,12 @@ class DocumentService
       detail: details.fetch(:detail)
     )
 
-    result
+    {
+      "result" => result,
+      "metadata" => {
+        "num_results"   => "Unknown",
+        "start_offset"  => 0
+      }
+    }
   end
 end
