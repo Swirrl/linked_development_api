@@ -152,13 +152,14 @@ class DocumentRepository
     graph   = RDF::Graph.new.from_ttl(result)
     map_graph_to_document(
       graph,
+      detail,
       details.fetch(:metadata_url_generator)
     )
   end
 
   # PHP: We currently don't implement category_subject as this data is not captured
   #      in the R4D RDF or in the data import coming from ELDIS
-  def map_graph_to_document(graph, metadata_url_generator)
+  def map_graph_to_document(graph, detail, metadata_url_generator)
     document = { }
 
     document_solutions = graph.query(
@@ -173,143 +174,147 @@ class DocumentRepository
 
     document_solution = document_solutions.first
 
-    document_uri = document_solution.document
-
-    document["object_type"]       = "Document"
-    document_object_id            = document_solution._object_id.object
-    document["object_id"]         = document_object_id
-    document["title"]             =
-    document["name"]              = document_solution.title.object
-    site                          = document_uri.path.split("/")[1] # Original PHP implementation
-    # Note: we also use site later for the metadata URL generation, which may not be correct
-    document["site"]              = site
-
-    website_url_uri               = document_solution["website_url"]
-    document["website_url"]       = (website_url_uri && website_url_uri.to_s)
-
-    publisher_solutions = graph.query(
-      RDF::Query.new do
-        pattern [:document,  RDF::DC.publisher, :publisher]
-        pattern [:publisher, RDF::FOAF.name,    :publisher_name]
-      end
-    )
-    if publisher_solution = publisher_solutions.first
-      document["publisher"]       = publisher_solution.publisher_name.object
-    else
-      document["publisher"]       = nil
-    end
-
-    # Note: as of writing, the dates are being stored as strings, not date(time)s
-    publication_date              = document_solution.publication_date.object
-    document["publication_date"]  = publication_date.sub("T", " ") # Original PHP implementation
-    document["publication_year"]  = Date.parse(publication_date).strftime("%Y")
-
-    # PHP: ToDo - Add more publisher details here (waiting for cache to clear)
+    document_uri        = document_solution.document
+    document_object_id  = document_solution._object_id.object
+    site                = document_uri.path.split("/")[1] # Original PHP implementation
 
     # PHP: Custom property not originally in the IDS API
-    document["linked_data_uri"]   = document_uri.to_s
-    document["metadata_url"]      = metadata_url_generator.document_url(site, document_object_id)
-    # PHP: ToDo - get license data into system
-    document["license_type"]      = "Not Known"
+    document["linked_data_uri"] = document_uri.to_s
+    document["metadata_url"]    = metadata_url_generator.document_url(site, document_object_id)
+    document["object_type"]     = "Document"
+    document["object_id"]       = document_object_id
+    title                       = document_solution.title.object
+    document["title"]           = title
 
-    author_solutions = RDF::Query.execute(graph) do
-      pattern [document_uri, RDF::DC.creator, :author]
-    end
+    if detail == "full"
+      document["name"]              = document_solution.title.object
+      # Note: we also use site later for the metadata URL generation, which may not be correct
+      document["site"]              = site
 
-    document["author"] = author_solutions.map(&:author).map(&:object)
+      website_url_uri               = document_solution["website_url"]
+      document["website_url"]       = (website_url_uri && website_url_uri.to_s)
 
-    # We could consider using (as yet unwritten) Theme code to generate this,
-    # but the format of a Theme in a Document is different from a Theme itself
-    #
-    # PHP: EasyRDF is currently not getting all the subjects as it should.
-    #      See https://github.com/practicalparticipation/ldapi/issues/4
-    document["category_theme_array"]  = { "theme" => [ ] }
-    document["category_theme_ids"]    = [ ]
-    theme_solutions = graph.query(
-      RDF::Query.new do
-        pattern [:document, RDF::DC.subject,    :theme]
-        pattern [:theme,    RDF::RDFS.label,    :object_name]
-        pattern [:theme,    RDF::DC.identifier, :_object_id],   optional: true
-      end
-    )
-    theme_solutions.each do |theme_solution|
-      _object_id =
-        if identifier_term = theme_solution["_object_id"]
-          identifier_term.object
-        else
-          URI.parse(theme_solution["theme"].to_s).path.split("/").last
-        end
-
-      document["category_theme_array"]["theme"] << {
-        "archived"      => "false",   # Original PHP was a hard-coded string
-        "level"         => "unknown", # Original PHP was a hard-coded string
-        "metadata_url"  => metadata_url_generator.theme_url(site, _object_id),
-        "object_id"     => _object_id,
-        "object_name"   => theme_solution["object_name"].object,
-        "object_type"   => "theme"
-      }
-
-      document["category_theme_ids"] << _object_id
-    end
-
-    coverage_solutions = graph.query(
-      RDF::Query.new do
-        pattern [:document, RDF::DC.coverage,         :coverage]
-        # TODO: find something without a label
-        pattern [:coverage, RDF::RDFS.label,          :label] #, optional: true
-        pattern [:coverage, RDF::FAOGEOPOL.codeISO2,  :iso_two_letter_code],  optional: true
-        pattern [:coverage, RDF::FAOGEOPOL.codeUN,    :un_code],              optional: true
-        pattern [:coverage, RDF::DC.identifier,       :identifier],           optional: true
-      end
-    )
-
-    coverage_solutions.each do |coverage_solution|
-      label = coverage_solution.label.object
-
-      if iso_two_letter_code_term = coverage_solution["iso_two_letter_code"]
-        iso_two_letter_code = iso_two_letter_code_term.object
-        document["country_focus_array"] ||= { "Country" => [ ] }
-        document["country_focus"]       ||= [ ]
-        document["country_focus_ids"]   ||= [ ]
-
-        document["country_focus_array"]["Country"] << {
-          "alternative_name"    => label,
-          "iso_two_letter_code" => iso_two_letter_code,
-          "metadata_url"        => metadata_url_generator.country_url(site, iso_two_letter_code),
-          "object_id"           => iso_two_letter_code,
-          "object_name"         => label,
-          "object_type"         => "Country"
-        }
-        document["country_focus"] << label
-        document["country_focus_ids"] << iso_two_letter_code
-      else
-        document["category_region_array"]   ||= { "Region" => [ ] }
-        document["category_region_path"]    ||= [ ]
-        document["category_region_ids"]     ||= [ ]
-        document["category_region_objects"] ||= [ ]
-
-        un_code = coverage_solution["un_code"]
-        identifier = coverage_solution["identifier"]
-        coverage_id = (un_code && "UN#{un_code.object}") || (identifier && identifier.object) || ""
-
-        document["category_region_array"]["Region"] << {
-          "archived"      => "false", # Original PHP was a hard-coded string
-          "deleted"       => "0",     # Original PHP was a hard-coded string
-          "metadata_url"  => metadata_url_generator.region_url(site, coverage_id),
-          "object_id"     => coverage_id,
-          "object_name"   => label,
-          "object_type"   => "region"
-        }
-        document["category_region_path"] << label
-        document["category_region_ids"] << coverage_id
-        document["category_region_objects"] << "#{coverage_id}|region|#{label}"
-      end
-
-      document["urls"] = graph.query(
+      publisher_solutions = graph.query(
         RDF::Query.new do
-          pattern [:document, RDF::Bibo.uri, :url]
+          pattern [:document,  RDF::DC.publisher, :publisher]
+          pattern [:publisher, RDF::FOAF.name,    :publisher_name]
         end
-      ).map(&:url).map(&:to_s)
+      )
+      if publisher_solution = publisher_solutions.first
+        document["publisher"]       = publisher_solution.publisher_name.object
+      else
+        document["publisher"]       = nil
+      end
+
+      # Note: as of writing, the dates are being stored as strings, not date(time)s
+      publication_date              = document_solution.publication_date.object
+      document["publication_date"]  = publication_date.sub("T", " ") # Original PHP implementation
+      document["publication_year"]  = Date.parse(publication_date).strftime("%Y")
+
+      # PHP: ToDo - Add more publisher details here (waiting for cache to clear)
+
+      # PHP: ToDo - get license data into system
+      document["license_type"]      = "Not Known"
+
+      author_solutions = RDF::Query.execute(graph) do
+        pattern [document_uri, RDF::DC.creator, :author]
+      end
+
+      document["author"] = author_solutions.map(&:author).map(&:object)
+
+      # We could consider using (as yet unwritten) Theme code to generate this,
+      # but the format of a Theme in a Document is different from a Theme itself
+      #
+      # PHP: EasyRDF is currently not getting all the subjects as it should.
+      #      See https://github.com/practicalparticipation/ldapi/issues/4
+      document["category_theme_array"]  = { "theme" => [ ] }
+      document["category_theme_ids"]    = [ ]
+      theme_solutions = graph.query(
+        RDF::Query.new do
+          pattern [:document, RDF::DC.subject,    :theme]
+          pattern [:theme,    RDF::RDFS.label,    :object_name]
+          pattern [:theme,    RDF::DC.identifier, :_object_id],   optional: true
+        end
+      )
+      theme_solutions.each do |theme_solution|
+        _object_id =
+          if identifier_term = theme_solution["_object_id"]
+            identifier_term.object
+          else
+            URI.parse(theme_solution["theme"].to_s).path.split("/").last
+          end
+
+        document["category_theme_array"]["theme"] << {
+          "archived"      => "false",   # Original PHP was a hard-coded string
+          "level"         => "unknown", # Original PHP was a hard-coded string
+          "metadata_url"  => metadata_url_generator.theme_url(site, _object_id),
+          "object_id"     => _object_id,
+          "object_name"   => theme_solution["object_name"].object,
+          "object_type"   => "theme"
+        }
+
+        document["category_theme_ids"] << _object_id
+      end
+
+      coverage_solutions = graph.query(
+        RDF::Query.new do
+          pattern [:document, RDF::DC.coverage,         :coverage]
+          # TODO: find something without a label
+          pattern [:coverage, RDF::RDFS.label,          :label] #, optional: true
+          pattern [:coverage, RDF::FAOGEOPOL.codeISO2,  :iso_two_letter_code],  optional: true
+          pattern [:coverage, RDF::FAOGEOPOL.codeUN,    :un_code],              optional: true
+          pattern [:coverage, RDF::DC.identifier,       :identifier],           optional: true
+        end
+      )
+
+      coverage_solutions.each do |coverage_solution|
+        label = coverage_solution.label.object
+
+        if iso_two_letter_code_term = coverage_solution["iso_two_letter_code"]
+          iso_two_letter_code = iso_two_letter_code_term.object
+          document["country_focus_array"] ||= { "Country" => [ ] }
+          document["country_focus"]       ||= [ ]
+          document["country_focus_ids"]   ||= [ ]
+
+          document["country_focus_array"]["Country"] << {
+            "alternative_name"    => label,
+            "iso_two_letter_code" => iso_two_letter_code,
+            "metadata_url"        => metadata_url_generator.country_url(site, iso_two_letter_code),
+            "object_id"           => iso_two_letter_code,
+            "object_name"         => label,
+            "object_type"         => "Country"
+          }
+          document["country_focus"] << label
+          document["country_focus_ids"] << iso_two_letter_code
+        else
+          document["category_region_array"]   ||= { "Region" => [ ] }
+          document["category_region_path"]    ||= [ ]
+          document["category_region_ids"]     ||= [ ]
+          document["category_region_objects"] ||= [ ]
+
+          un_code = coverage_solution["un_code"]
+          identifier = coverage_solution["identifier"]
+          coverage_id = (un_code && "UN#{un_code.object}") || (identifier && identifier.object) || ""
+
+          document["category_region_array"]["Region"] << {
+            "archived"      => "false", # Original PHP was a hard-coded string
+            "deleted"       => "0",     # Original PHP was a hard-coded string
+            "metadata_url"  => metadata_url_generator.region_url(site, coverage_id),
+            "object_id"     => coverage_id,
+            "object_name"   => label,
+            "object_type"   => "region"
+          }
+          document["category_region_path"] << label
+          document["category_region_ids"] << coverage_id
+          document["category_region_objects"] << "#{coverage_id}|region|#{label}"
+        end
+
+        document["urls"] = graph.query(
+          RDF::Query.new do
+            pattern [:document, RDF::Bibo.uri, :url]
+          end
+        ).map(&:url).map(&:to_s)
+      end
     end
 
     document

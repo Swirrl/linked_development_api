@@ -83,6 +83,17 @@ describe DocumentService do
     end
   end
 
+  context "ELDIS document A64559 (short)" do
+    let(:response) { service.get(type: "eldis", id: "A64559", detail: nil) }
+    let(:json_output) { response.to_json }
+
+    example "complete document" do
+      expect(
+        JSON.parse(json_output)
+      ).to be == JSON.parse(sample_file("eldis_document_A64559_short.json"))
+    end
+  end
+
   context "Multiple creators (ELDIS document A64840)" do
     let(:response) { service.get(type: "eldis", id: "A64840", detail: "full") }
     let(:document) { response["results"].first }

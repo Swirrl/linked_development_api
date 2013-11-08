@@ -1,0 +1,15 @@
+{
+    "results": [
+        {
+            "linked_data_uri": "http://linked-development.org/eldis/output/A64559/",
+            "metadata_url": "http://linked-development.org/openapi/eldis/get/documents/A64559/full",
+            "object_id": "A64559",
+            "object_type": "Document",
+            "title": "Using ICT to Develop Literacy"
+        }
+    ],
+    "metadata": {
+        "num_results": "Unknown",
+        "start_offset": 0
+    }
+}
