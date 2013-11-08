@@ -1,9 +1,8 @@
 {
     "results": [
         {
-            "linked_data_uri": "http:\/\/linked-development.org\/eldis\/output\/A64559\/",
-            // DEFERRED:
-            // "metadata_url": "http:\/\/linked-development.org\/openapi\/eldis\/get\/documents\/A64559\/full",
+            "linked_data_uri": "http://linked-development.org/eldis/output/A64559/",
+            "metadata_url": "http://linked-development.org/openapi/eldis/get/documents/A64559/full",
             "object_id": "A64559",
             "object_type": "Document",
             "title": "Using ICT to Develop Literacy",
@@ -15,8 +14,7 @@
                     {
                         "alternative_name": "Thailand",
                         "iso_two_letter_code": "TH",
-                        // DEFERRED:
-                        // "metadata_url": "http:\/\/linked-development.org\/openapi\/eldis\/get\/countries\/TH\/full",
+                        "metadata_url": "http://linked-development.org/openapi/eldis/get/countries/TH/full",
                         "object_id": "TH",
                         "object_name": "Thailand",
                         "object_type": "Country"
@@ -35,8 +33,7 @@
                     {
                         "archived": "false",
                         "level": "unknown",
-                        // DEFERRED:
-                        // "metadata_url": "http:\/\/linked-development.org\/openapi\/eldis\/get\/themes\/C782",
+                        "metadata_url": "http://linked-development.org/openapi/eldis/get/themes/C782",
                         "object_id": "C782",
                         "object_name": "ICTs for development",
                         "object_type": "theme"
@@ -44,8 +41,7 @@
                     {
                         "archived": "false",
                         "level": "unknown",
-                        // DEFERRED:
-                        // "metadata_url": "http:\/\/linked-development.org\/openapi\/eldis\/get\/themes\/C790",
+                        "metadata_url": "http://linked-development.org/openapi/eldis/get/themes/C790",
                         "object_id": "C790",
                         "object_name": "ICT for education",
                         "object_type": "theme"
@@ -63,11 +59,11 @@
             "publication_year": "2006",
             "publisher": "UNESCO Bangkok",
             "site": "eldis",
-            // NOTE: changed
+            // NOTE: changed from [nil]
             "urls": [
 
             ],
-            "website_url": "http:\/\/www.eldis.org\/go\/display?type=Document&id=64559"
+            "website_url": "http://www.eldis.org/go/display?type=Document&id=64559"
         }
     ],
     "metadata": {

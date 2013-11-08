@@ -27,8 +27,7 @@ describe DocumentService do
             {
                  "archived"     => "false",
                  "level"        => "unknown",
-                 # We need route generation for this:
-                 # "metadata_url" => "http://linked-development.org/openapi/eldis/get/themes/C790",
+                 "metadata_url" => "http://linked-development.org/openapi/eldis/get/themes/C790",
                  "object_id"    => "C790",
                  "object_name"  => "ICT for education",
                  "object_type"  => "theme"
@@ -36,8 +35,7 @@ describe DocumentService do
             {
                 "archived"      => "false",
                 "level"         => "unknown",
-                # We need route generation for this:
-                # "metadata_url"  => "http://linked-development.org/openapi/eldis/get/themes/C782",
+                "metadata_url"  => "http://linked-development.org/openapi/eldis/get/themes/C782",
                 "object_id"     => "C782",
                 "object_name"   => "ICTs for development",
                 "object_type"   => "theme"
@@ -52,8 +50,7 @@ describe DocumentService do
             {
                 "alternative_name"    => "Thailand",
                 "iso_two_letter_code" => "TH",
-                # We need route generation for this:
-                # "metadata_url"        => "http://linked-development.org/openapi/eldis/get/countries/TH/full",
+                "metadata_url"        => "http://linked-development.org/openapi/eldis/get/countries/TH/full",
                 "object_id"           => "TH",
                 "object_name"         => "Thailand",
                 "object_type"         => "Country"
@@ -124,8 +121,7 @@ describe DocumentService do
             {
               "archived"      => "false",
               "deleted"       => "0",
-              # We need route generation for this:
-              # "metadata_url"  => "http://linked-development.org/openapi/eldis/get/regions/C30/full",
+              "metadata_url"  => "http://linked-development.org/openapi/eldis/get/regions/C30/full",
               "object_id"     => "C30",
               "object_name"   => "South Asia",
               "object_type"   => "region"

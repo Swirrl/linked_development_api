@@ -150,12 +150,15 @@ class DocumentRepository
     query   = Tripod::SparqlQuery.new(GET_DOCUMENT_QUERY_TEMPLATE, uri: uri)
     result  = Tripod::SparqlClient::Query.query(query.query, 'text/turtle')
     graph   = RDF::Graph.new.from_ttl(result)
-    map_graph_to_document(graph)
+    map_graph_to_document(
+      graph,
+      details.fetch(:metadata_url_generator)
+    )
   end
 
   # PHP: We currently don't implement category_subject as this data is not captured
   #      in the R4D RDF or in the data import coming from ELDIS
-  def map_graph_to_document(graph)
+  def map_graph_to_document(graph, metadata_url_generator)
     document = { }
 
     document_solutions = graph.query(
@@ -173,10 +176,13 @@ class DocumentRepository
     document_uri = document_solution.document
 
     document["object_type"]       = "Document"
-    document["object_id"]         = document_solution._object_id.object
+    document_object_id            = document_solution._object_id.object
+    document["object_id"]         = document_object_id
     document["title"]             =
     document["name"]              = document_solution.title.object
-    document["site"]              = document_uri.path.split("/")[1] # Original PHP implementation
+    site                          = document_uri.path.split("/")[1] # Original PHP implementation
+    # Note: we also use site later for the metadata URL generation, which may not be correct
+    document["site"]              = site
 
     website_url_uri               = document_solution["website_url"]
     document["website_url"]       = (website_url_uri && website_url_uri.to_s)
@@ -202,6 +208,7 @@ class DocumentRepository
 
     # PHP: Custom property not originally in the IDS API
     document["linked_data_uri"]   = document_uri.to_s
+    document["metadata_url"]      = metadata_url_generator.document_url(site, document_object_id)
     # PHP: ToDo - get license data into system
     document["license_type"]      = "Not Known"
 
@@ -234,13 +241,12 @@ class DocumentRepository
         end
 
       document["category_theme_array"]["theme"] << {
-        "archived"    => "false",   # Original PHP was a hard-coded string
-        "level"       => "unknown", # Original PHP was a hard-coded string
-        # We need a route generator to do metadata_url
-        # PHP: "metadata_url" => $this->getContainer()->get('router')->generate('ld_api_api_index',array(),true).$graph."/get/themes/".$themeID,
-        "object_id"   => _object_id,
-        "object_name" => theme_solution["object_name"].object,
-        "object_type" => "theme"
+        "archived"      => "false",   # Original PHP was a hard-coded string
+        "level"         => "unknown", # Original PHP was a hard-coded string
+        "metadata_url"  => metadata_url_generator.theme_url(site, _object_id),
+        "object_id"     => _object_id,
+        "object_name"   => theme_solution["object_name"].object,
+        "object_type"   => "theme"
       }
 
       document["category_theme_ids"] << _object_id
@@ -269,8 +275,7 @@ class DocumentRepository
         document["country_focus_array"]["Country"] << {
           "alternative_name"    => label,
           "iso_two_letter_code" => iso_two_letter_code,
-          # We need a route generator to do metadata_url
-          # "metadata_url"=> $this->getContainer()->get('router')->generate('ld_api_api_index',array(),true).$graph."/get/countries/".$coverage->get("<http://www.fao.org/countryprofiles/geoinfo/geopolitical/resource/codeISO2>")->getValue()."/full",
+          "metadata_url"        => metadata_url_generator.country_url(site, iso_two_letter_code),
           "object_id"           => iso_two_letter_code,
           "object_name"         => label,
           "object_type"         => "Country"
@@ -290,8 +295,7 @@ class DocumentRepository
         document["category_region_array"]["Region"] << {
           "archived"      => "false", # Original PHP was a hard-coded string
           "deleted"       => "0",     # Original PHP was a hard-coded string
-          # We need a route generator to do metadata_url
-          # "metadata_url"  => $this->getContainer()->get('router')->generate('ld_api_api_index',array(),true).$graph."/get/regions/".$coverageID."/full",
+          "metadata_url"  => metadata_url_generator.region_url(site, coverage_id),
           "object_id"     => coverage_id,
           "object_name"   => label,
           "object_type"   => "region"

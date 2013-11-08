@@ -3,12 +3,16 @@ class DocumentService
     # Convenience factory method to construct a new DocumentService
     # with the usual dependencies
     def build
-      new(document_repository: DocumentRepository.new)
+      new(
+        document_repository:    DocumentRepository.new,
+        metadata_url_generator: MetadataURLGenerator.new("http://linked-development.org")
+      )
     end
   end
 
   def initialize(dependencies = { })
-    @document_repository = dependencies.fetch(:document_repository)
+    @document_repository    = dependencies.fetch(:document_repository)
+    @metadata_url_generator = dependencies.fetch(:metadata_url_generator)
   end
 
   def get(details)
@@ -18,7 +22,9 @@ class DocumentService
     result = @document_repository.find(
       type:   details.fetch(:type),
       id:     details.fetch(:id),
-      detail: details.fetch(:detail)
+      detail: details.fetch(:detail),
+
+      metadata_url_generator: @metadata_url_generator
     )
 
     {
