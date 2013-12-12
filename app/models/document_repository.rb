@@ -156,7 +156,16 @@ class DocumentRepository
       details.fetch(:metadata_url_generator)
     )
   end
-
+  
+  # Once we have a local graph (via the CONSTRUCT) we use this method
+  # to query it locally via rdf.rb and assemble a Hash representing
+  # the document.
+  # 
+  # Params:
+  #    graph  - the local in-memory rdf graph
+  #    detail - "full", "short" or nil.  If nil then we default to "short"
+  #    urlgen - generator for metadata URI's
+  # 
   # PHP: We currently don't implement category_subject as this data is not captured
   #      in the R4D RDF or in the data import coming from ELDIS
   def map_graph_to_document(graph, detail, metadata_url_generator)
