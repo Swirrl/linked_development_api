@@ -3,7 +3,7 @@ require 'rest_client'
 require 'json'
 
 endpoint = "http://linked-development.org/sparql?query="
-graphs = ["http://linked-development.org/eldis/","http://linked-development.org/r4d/"]
+graphs = ["http://linked-development.org/graph/eldis/","http://linked-development.org/graph/r4d/"]
 output_files = ["eldis.nt","r4d.nt"]
 chunksize = 50000
 
