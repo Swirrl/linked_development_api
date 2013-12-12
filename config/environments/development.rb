@@ -29,6 +29,9 @@ LinkedDevelopmentApi::Application.configure do
   # Expands the lines which load the assets
   config.assets.debug = true
 
+  # Pretty print JSON in development mode
+  config.middleware.use PrettyJsonResponse
+
   Tripod.configure do |config|
     config.query_endpoint   = 'http://localhost:3030/linkeddev-dev/sparql'
     config.data_endpoint    = 'http://localhost:3030/linkeddev-dev/data'

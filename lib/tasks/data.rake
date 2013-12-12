@@ -5,7 +5,7 @@ namespace :data do
     end
 
     def put_file_to_db_graph(filename, database, graph)
-      cmd = "curl -X PUT --data-binary @#{filename} -H 'Content-Type: text/plain' " <<
+      cmd = "curl -X PUT --data-binary @#{filename} -H 'Content-Type: application/n-triples' " <<
             "'#{test_graph_uri(database, graph)}'"
       puts cmd
       system cmd
