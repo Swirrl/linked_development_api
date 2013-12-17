@@ -8,7 +8,7 @@ class MetadataURLGenerator
   end
 
   def theme_url(graph, object_id)
-    url("/openapi/%s/get/themes/%s", graph, object_id)
+    url("/openapi/%s/get/themes/%s/full", graph, object_id)
   end
 
   def country_url(graph, object_id)
@@ -17,6 +17,10 @@ class MetadataURLGenerator
 
   def region_url(graph, object_id)
     url("/openapi/%s/get/regions/%s/full", graph, object_id)
+  end
+
+  def children_url(graph, object_id)
+    url("/openapi/%s/get_children/themes/%s/full", graph, object_id)
   end
 
   private

@@ -76,7 +76,28 @@ SPARQL
     theme['metadata_url'] = @metadata_url_generator.theme_url('eldis', theme_solution._object_id)
 
     if @detail === 'full'
-      puts 'full'
+      theme['site'] = 'eldis'
+      theme['children_url'] = @metadata_url_generator.children_url('eldis', theme_solution._object_id)
+      theme['name'] = theme_solution.label.value
+      
+      child_solutions = RDF::Query.execute(graph) do |q|
+        q.pattern [:theme, RDF::RDFS.label,    :label]
+        q.pattern [:theme, RDF::DC.identifier, :_object_id]
+      end
+
+      filtered_solutions = []
+      child_solutions.each do |s|
+        filtered_solutions << {
+          'object_name' => s.label.value,
+          'level' => '1',
+          'object_id' => s._object_id.value,
+          'linked_data_url' => s.theme.to_s,
+          'metadata_url' => @metadata_url_generator.theme_url('eldis', s._object_id.value)
+        } unless s.theme.to_s === @theme_uri
+      end
+      
+      theme['children_object_array'] = {'child' => filtered_solutions }
+      
     end
     
     theme
