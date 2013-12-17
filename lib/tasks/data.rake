@@ -24,10 +24,10 @@ namespace :data do
     desc "Load the sample data into a local test database"
     task :test do
       put_file_to_db_graph(
-        "data/eldis.nt", "linkeddev-test", "http://linked-development.org/eldis"
+        "data/eldis.nt", "linkeddev-test", "http://linked-development.org/graph/eldis"
       )
       put_file_to_db_graph(
-        "data/r4d.nt", "linkeddev-test", "http://linked-development.org/r4d"
+        "data/r4d.nt", "linkeddev-test", "http://linked-development.org/graph/r4d"
       )
     end
   end
