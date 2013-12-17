@@ -27,6 +27,7 @@ class DocumentService
       metadata_url_generator: @metadata_url_generator
     )
 
+    # TODO un-hardcode this
     {
       "results" => [result],
       "metadata" => {
