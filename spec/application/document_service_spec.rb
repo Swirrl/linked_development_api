@@ -7,7 +7,7 @@ describe DocumentService do
     File.read(File.dirname(__FILE__) + "/samples/#{filename}")
   end
 
-  context "ELDIS document A64559" do
+  context "ELDIS document A64559 - full" do
     let(:response) { service.get(type: "eldis", id: "A64559", detail: "full") }
     let(:document) { response["results"].first }
 

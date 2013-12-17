@@ -175,7 +175,7 @@ class DocumentRepository
       RDF::Query.new do
         pattern [:document, RDF.type,           RDF::URI.new("http://purl.org/ontology/bibo/Article")]
         pattern [:document, RDF::DC.title,      :title]
-        pattern [:document, RDF::DC.identifier, :_object_id] # :object_id is a reserved method name :-)]
+        pattern [:document, RDF::DC.identifier, :_object_id] # :object_id is a reserved method name :-)
         pattern [:document, RDF::DC.date,       :publication_date]
         pattern [:document, RDF::RDFS.seeAlso,  :website_url], optional: true
       end

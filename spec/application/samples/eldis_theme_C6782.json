@@ -1,0 +1,58 @@
+{
+    "results": [
+        {
+            "linked_data_uri": "http:\/\/linked-development.org\/eldis\/themes\/C782\/",
+            "object_id": "C782",
+            "object_type": "theme",
+            "title": "ICTs for development",
+            "metadata_url": "http:\/\/linked-development.org\/openapi\/eldis\/get\/themes\/C782\/full\/ICTs_for_development",
+            "site": "eldis",
+            "children_url": "http:\/\/linked-development.org\/openapi\/eldis\/get_children\/themes\/C782\/full\/",
+            "name": "ICTs for development",
+            "children_object_array": {
+                "child": [
+                    {
+                        "object_name": "ICTs and livelihoods",
+                        "level": "1",
+                        "object_id": "C1850",
+                        "metadata_url": "http:\/\/linked-development.org\/openapi\/eldis\/get\/themes\/C1850\/full\/ICTs_and_livelihoods",
+                        "linked_data_url": "http:\/\/linked-development.org\/eldis\/themes\/C1850\/",
+                        "object_type": "theme"
+                    },
+                    {
+                        "object_name": "Manuals and toolkits",
+                        "level": "1",
+                        "object_id": "C1812",
+                        "metadata_url": "http:\/\/linked-development.org\/openapi\/eldis\/get\/themes\/C1812\/full\/Manuals_and_toolkits",
+                        "linked_data_url": "http:\/\/linked-development.org\/eldis\/themes\/C1812\/",
+                        "object_type": "theme"
+                    },
+                    {
+                        "object_name": "ICTs and agriculture",
+                        "level": "1",
+                        "object_id": "C1849",
+                        "metadata_url": "http:\/\/linked-development.org\/openapi\/eldis\/get\/themes\/C1849\/full\/ICTs_and_agriculture",
+                        "linked_data_url": "http:\/\/linked-development.org\/eldis\/themes\/C1849\/",
+                        "object_type": "theme"
+                    },
+                    {
+                        "object_name": "Open development",
+                        "level": "1",
+                        "object_id": "C832",
+                        "metadata_url": "http:\/\/linked-development.org\/openapi\/eldis\/get\/themes\/C832\/full\/Open_development",
+                        "linked_data_url": "http:\/\/linked-development.org\/eldis\/themes\/C832\/",
+                        "object_type": "theme"
+                    },
+                    {
+                        "object_name": "Government and donor policy",
+                        "level": "1",
+                        "object_id": "C789",
+                        "metadata_url": "http:\/\/linked-development.org\/openapi\/eldis\/get\/themes\/C789\/full\/Government_and_donor_policy",
+                        "linked_data_url": "http:\/\/linked-development.org\/eldis\/themes\/C789\/",
+                        "object_type": "theme"
+                    }
+                ]
+            }
+        }
+    ]
+}
