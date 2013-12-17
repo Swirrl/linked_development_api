@@ -14,7 +14,7 @@ describe MetadataURLGenerator do
   example "themes" do
     expect(
       generator.theme_url("eldis", "C782")
-    ).to be == "http://example.com/openapi/eldis/get/themes/C782"
+    ).to be == "http://example.com/openapi/eldis/get/themes/C782/full"
   end
 
   example "countries" do
