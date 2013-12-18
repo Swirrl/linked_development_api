@@ -156,7 +156,16 @@ class DocumentRepository
       details.fetch(:metadata_url_generator)
     )
   end
-
+  
+  # Once we have a local graph (via the CONSTRUCT) we use this method
+  # to query it locally via rdf.rb and assemble a Hash representing
+  # the document.
+  # 
+  # Params:
+  #    graph  - the local in-memory rdf graph
+  #    detail - "full", "short" or nil.  If nil then we default to "short"
+  #    urlgen - generator for metadata URI's
+  # 
   # PHP: We currently don't implement category_subject as this data is not captured
   #      in the R4D RDF or in the data import coming from ELDIS
   def map_graph_to_document(graph, detail, metadata_url_generator)
@@ -164,9 +173,9 @@ class DocumentRepository
 
     document_solutions = graph.query(
       RDF::Query.new do
-        pattern [:document, RDF.type,           RDF::URI.new("http://purl.org/ontology/bibo/Article"),]
-        pattern [:document, RDF::DC.title,      :title,]
-        pattern [:document, RDF::DC.identifier, :_object_id] # :object_id is a reserved method name :-)]
+        pattern [:document, RDF.type,           RDF::URI.new("http://purl.org/ontology/bibo/Article")]
+        pattern [:document, RDF::DC.title,      :title]
+        pattern [:document, RDF::DC.identifier, :_object_id] # :object_id is a reserved method name :-)
         pattern [:document, RDF::DC.date,       :publication_date]
         pattern [:document, RDF::RDFS.seeAlso,  :website_url], optional: true
       end

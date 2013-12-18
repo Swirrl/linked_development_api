@@ -7,6 +7,7 @@ gem 'rails', '3.2.15'
 
 gem 'tripod'
 gem 'rdf'
+
 gem 'rdf-turtle'
 
 # Gems used only for assets and not required

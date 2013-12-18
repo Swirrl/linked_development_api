@@ -7,7 +7,7 @@ describe DocumentService do
     File.read(File.dirname(__FILE__) + "/samples/#{filename}")
   end
 
-  context "ELDIS document A64559" do
+  context "ELDIS document A64559 - full" do
     let(:response) { service.get(type: "eldis", id: "A64559", detail: "full") }
     let(:document) { response["results"].first }
 
@@ -22,11 +22,13 @@ describe DocumentService do
       specify { expect(document["site"]).to be              == "eldis" }
       specify { expect(document["website_url"]).to be       == "http:\/\/www.eldis.org\/go\/display?type=Document&id=64559" }
       specify {
+        fail 'Await decision on whether metadata_url should always be /full or not.  Until this is decided full JSON output complete document will fail too.'
         expect(document["category_theme_array"]["theme"]).to match_array(
           [
             {
                  "archived"     => "false",
                  "level"        => "unknown",
+                 # TODO: await decision on whether metadata_url should always be /full or not.
                  "metadata_url" => "http://linked-development.org/openapi/eldis/get/themes/C790",
                  "object_id"    => "C790",
                  "object_name"  => "ICT for education",
@@ -35,6 +37,7 @@ describe DocumentService do
             {
                 "archived"      => "false",
                 "level"         => "unknown",
+                 # TODO: await decision on whether metadata_url should always be /full or not.
                 "metadata_url"  => "http://linked-development.org/openapi/eldis/get/themes/C782",
                 "object_id"     => "C782",
                 "object_name"   => "ICTs for development",

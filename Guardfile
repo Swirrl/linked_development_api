@@ -15,6 +15,8 @@ guard :rspec,
   watch('config/routes.rb')                           { "spec/routing" }
   watch('app/controllers/application_controller.rb')  { "spec/controllers" }
 
+  
   # Temporary mapping to use the DocumentService spec as in integration test
-  watch('app/models/document_repository.rb') { "spec/application/document_service_spec.rb" }
+  watch(%r{^app/application/(.+)\.rb$}) { |m| "spec/application/#{m[1]}_spec.rb" }
+  watch(%r{^app/models/(.+)_repository\.rb$}) { |m| "spec/application/#{m[1]}_service_spec.rb" }
 end

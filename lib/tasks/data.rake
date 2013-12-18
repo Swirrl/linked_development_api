@@ -5,7 +5,7 @@ namespace :data do
     end
 
     def put_file_to_db_graph(filename, database, graph)
-      cmd = "curl -X PUT --data-binary @#{filename} -H 'Content-Type: text/plain' " <<
+      cmd = "curl -X PUT --data-binary @#{filename} -H 'Content-Type: application/n-triples' " <<
             "'#{test_graph_uri(database, graph)}'"
       puts cmd
       system cmd
@@ -24,10 +24,10 @@ namespace :data do
     desc "Load the sample data into a local test database"
     task :test do
       put_file_to_db_graph(
-        "data/eldis.nt", "linkeddev-test", "http://linked-development.org/eldis"
+        "data/eldis.nt", "linkeddev-test", "http://linked-development.org/graph/eldis"
       )
       put_file_to_db_graph(
-        "data/r4d.nt", "linkeddev-test", "http://linked-development.org/r4d"
+        "data/r4d.nt", "linkeddev-test", "http://linked-development.org/graph/r4d"
       )
     end
   end
