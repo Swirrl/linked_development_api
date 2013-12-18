@@ -2,20 +2,20 @@ require 'rdf/vocab/faogeopol'
 require 'rdf/vocab/bibo'
 
 class ThemeRepository
-  def find(details)
+
+  def set_details details
     @type = details.fetch(:type)
     @doc_id = details.fetch(:id)
     @detail = details.fetch(:detail)
-    @metadata_url_generator = details.fetch(:metadata_url_generator)
-    
     @theme_uri = theme_uri(@type, @doc_id)
-    
-    if @type === 'eldis'
-      run_eldis_query 
-    end
   end
-
-  def run_eldis_query
+  
+  def initialize
+    @metadata_url_generator = MetadataURLGenerator.new("http://linked-development.org")
+  end
+  
+  def run_eldis_query details
+    set_details details
     eldis_graph_uri = "http://linked-development.org/graph/eldis"
     theme_uri = theme_uri(@type, @doc_id)
     
@@ -103,9 +103,12 @@ SPARQL
     theme
   end  
 
+  def run_r4d_query details
+    set_details details
+  end
+
+  # Generate a resource URI for the theme, note this is different from a 'metadata_url'
   def theme_uri type, doc_id
     "http://linked-development.org/#{type}/themes/#{doc_id}/"
   end
-  
 end
-

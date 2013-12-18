@@ -3,19 +3,40 @@ require 'spec_helper'
 describe ThemeService do
   let(:service) { ThemeService.build }
 
-  def sample_file(filename)
-    File.read(File.dirname(__FILE__) + "/samples/#{filename}")
-  end
-
   context "parameter validation" do 
     describe 'raises error' do 
       it 'InvalidDocumentType when type is not one of eldis, r4d, or all' do 
         expect {service.get type: 'foo', id: 'C782', detail: 'short'}.to raise_error InvalidDocumentType
       end
     end
+    
+    describe 'when type is all' do 
+      let(:theme_repository) { double('theme-repository') }
+      
+      before :each do 
+        theme_repository.stub(:run_eldis_query)
+      end
+
+      let(:service) { ThemeService.new :theme_repository => theme_repository }
+
+      it 'determines an r4d get if the :id begins with c_' do
+        theme_repository.should_receive(:run_r4d_query)
+        service.get type: 'all', id: 'c_10176', detail: 'short'
+      end
+
+      it 'determines an eldis get if the :id begins with C' do 
+        theme_repository.should_receive(:run_eldis_query)
+        service.get type: 'all', id: 'C785', detail: 'short'
+      end
+      
+      it 'raises a LinkedDevelopmentError if it doesnt recognise the format of the :id' do 
+        expect {service.get type: 'all', id: 'invalid_id_format_1', detail: 'short'}.to raise_error LinkedDevelopmentError
+      end
+    end
+    
   end
 
-  context "themes document C782 (short)" do
+  context "eldis get themes C782 (short)" do
     let(:response) { service.get(type: "eldis", id: "C782", detail: "short") }
     let(:document) { response["results"].first }
     
@@ -36,16 +57,14 @@ describe ThemeService do
 
     describe "JSON output" do
       let(:json_output) { response.to_json }
-
+      
       example "complete document" do
-        expect(
-          JSON.parse(json_output)
-        ).to be == JSON.parse(sample_file("eldis_theme_C6782_short.json")) 
+        expect(JSON.parse(json_output)).to be == sample_json("eldis_theme_C782_short.json")
       end
     end
   end
-
-  context 'themes document C782 (full)' do 
+  
+  context 'eldis get themes C782 (full)' do 
     let(:response) { service.get(type: "eldis", id: "C782", detail: "full") }
     let(:document) { response["results"].first }
 
@@ -139,17 +158,47 @@ describe ThemeService do
           ]
         )
       }
-
     end
 
     describe "JSON output" do
       let(:json_output) { response.to_json }
-
+      
       example "complete document" do
-        expect(
-          JSON.parse(json_output)
-        ).to be == JSON.parse(sample_file("eldis_theme_C6782.json")) 
+        expect(JSON.parse(json_output)).to be == sample_json("eldis_theme_C782.json")
+      end
+    end
+  end
+
+  context 'r4d get c_10176 (full)' do 
+    let(:response) { service.get(type: "eldis", id: "C782", detail: "full") }
+
+    describe "document content" do 
+      
+    end
+
+    describe "JSON output" do
+      let(:json_output) { response.to_json }
+      
+      example "complete document" do
+        expect(JSON.parse(json_output)).to be == sample_json("eldis_theme_C782.json")
+      end
+    end
+  end
+
+  context 'r4d get c_10176 (short)' do 
+    let(:response) { service.get(type: "eldis", id: "C782", detail: "full") }
+
+    describe "document content" do 
+    end
+    
+    describe "JSON output" do
+      let(:json_output) { response.to_json }
+      
+      example "complete document" do
+        expect(JSON.parse(json_output)).to be == sample_json("eldis_theme_C782.json")
       end
     end
   end
 end
+  
+

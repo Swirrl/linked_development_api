@@ -3,10 +3,6 @@ require 'spec_helper'
 describe DocumentService do
   let(:service) { DocumentService.build }
 
-  def sample_file(filename)
-    File.read(File.dirname(__FILE__) + "/samples/#{filename}")
-  end
-
   context "ELDIS document A64559 - full" do
     let(:response) { service.get(type: "eldis", id: "A64559", detail: "full") }
     let(:document) { response["results"].first }
@@ -81,7 +77,7 @@ describe DocumentService do
       example "complete document" do
         expect(
           JSON.parse(json_output)
-        ).to be == JSON.parse(sample_file("eldis_document_A64559.json"))
+        ).to be == sample_json("eldis_document_A64559.json")
       end
     end
   end
@@ -93,7 +89,7 @@ describe DocumentService do
     example "complete document" do
       expect(
         JSON.parse(json_output)
-      ).to be == JSON.parse(sample_file("eldis_document_A64559_short.json"))
+      ).to be == sample_json("eldis_document_A64559_short.json")
     end
   end
 
