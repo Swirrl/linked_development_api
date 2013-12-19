@@ -3,10 +3,6 @@ require 'spec_helper'
 describe DocumentService do
   let(:service) { DocumentService.build }
 
-  def sample_file(filename)
-    File.read(File.dirname(__FILE__) + "/samples/#{filename}")
-  end
-
   context "ELDIS document A64559 - full" do
     let(:response) { service.get(type: "eldis", id: "A64559", detail: "full") }
     let(:document) { response["results"].first }
@@ -22,14 +18,12 @@ describe DocumentService do
       specify { expect(document["site"]).to be              == "eldis" }
       specify { expect(document["website_url"]).to be       == "http:\/\/www.eldis.org\/go\/display?type=Document&id=64559" }
       specify {
-        fail 'Await decision on whether metadata_url should always be /full or not.  Until this is decided full JSON output complete document will fail too.'
         expect(document["category_theme_array"]["theme"]).to match_array(
           [
             {
                  "archived"     => "false",
                  "level"        => "unknown",
-                 # TODO: await decision on whether metadata_url should always be /full or not.
-                 "metadata_url" => "http://linked-development.org/openapi/eldis/get/themes/C790",
+                 "metadata_url" => "http://linked-development.org/openapi/eldis/get/themes/C790/full",
                  "object_id"    => "C790",
                  "object_name"  => "ICT for education",
                  "object_type"  => "theme"
@@ -37,8 +31,7 @@ describe DocumentService do
             {
                 "archived"      => "false",
                 "level"         => "unknown",
-                 # TODO: await decision on whether metadata_url should always be /full or not.
-                "metadata_url"  => "http://linked-development.org/openapi/eldis/get/themes/C782",
+                "metadata_url"  => "http://linked-development.org/openapi/eldis/get/themes/C782/full",
                 "object_id"     => "C782",
                 "object_name"   => "ICTs for development",
                 "object_type"   => "theme"
@@ -80,8 +73,8 @@ describe DocumentService do
 
       example "complete document" do
         expect(
-          JSON.parse(json_output)
-        ).to be == JSON.parse(sample_file("eldis_document_A64559.json"))
+               sort_hash(JSON.parse(json_output))
+        ).to be == sort_hash(sample_json("eldis_document_A64559.json"))
       end
     end
   end
@@ -92,8 +85,8 @@ describe DocumentService do
 
     example "complete document" do
       expect(
-        JSON.parse(json_output)
-      ).to be == JSON.parse(sample_file("eldis_document_A64559_short.json"))
+             sort_hash(JSON.parse(json_output))
+      ).to be == sort_hash(sample_json("eldis_document_A64559_short.json"))
     end
   end
 

@@ -4,16 +4,10 @@ require 'rdf/vocab/bibo'
 # NOTE:
 #  Comments beginning PHP: are copied from the original PHP source
 
-class DocumentRepository
+class DocumentRepository < AbstractRepository
   # There's some Ruby code in this file too, if you scroll down long enough
   GET_DOCUMENT_QUERY_TEMPLATE = <<-SPARQL
-    PREFIX dcterms: <http://purl.org/dc/terms/>
-    PREFIX bibo: <http://purl.org/ontology/bibo/>
-    PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-    PREFIX fao: <http://www.fao.org/countryprofiles/geoinfo/geopolitical/resource/>
-    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-    PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-    PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
+    #{common_prefixes}
 
     CONSTRUCT {
       ?resource a                 bibo:Article ;

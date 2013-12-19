@@ -5,31 +5,33 @@ class ThemeService
     # Convenience factory method to construct a new DocumentService
     # with the usual dependencies
     def build
-      new(
-        theme_repository:    ThemeRepository.new,
-        metadata_url_generator: MetadataURLGenerator.new("http://linked-development.org")
-      )
+      new(theme_repository: ThemeRepository.new)
     end
   end
 
   def initialize(dependencies = { })
-    @theme_repository    = dependencies.fetch(:theme_repository)
-    @metadata_url_generator = dependencies.fetch(:metadata_url_generator)
+    @theme_repository = dependencies.fetch(:theme_repository)
   end
 
   def get(details)
     # The original DefaultQueryBuilder#createQuery uses FROM clauses
     # to restrict the results, which we're not re-implementing here yet
     # Silly hash re-structuring on purpose for now
-
+    
     type = details.fetch(:type)
-    
+    doc_id = details.fetch(:id)
+
     check_graph_validity? type
+
+    result = if type == 'eldis' || doc_id =~ /^C/
+               @theme_repository.run_eldis_query details
+             elsif type == 'r4d' || doc_id =~ /^c_/
+               @theme_repository.run_r4d_query details
+             else
+               raise LinkedDevelopmentError, "/:graph/function/object/ parameter must be eldis, r4d or all."
+             end
     
-    result = @theme_repository.find(type: type,
-                                    id: details.fetch(:id),
-                                    detail: details.fetch(:detail),
-                                    metadata_url_generator: @metadata_url_generator)
+   
     {
       "results" => [result]
     }
