@@ -2,8 +2,7 @@ namespace :data do
 
   namespace :load do
     def get_graph_uri(graph)
-
-      "#{Tripod.data_endpoint.gsub('sparql', 'data')}?graph=#{graph}"
+      "#{Tripod.data_endpoint}?graph=#{graph}"
     end
 
     def put_file_to_db_graph(filename, graph)
