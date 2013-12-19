@@ -170,9 +170,19 @@ describe ThemeService do
   end
 
   context 'r4d get c_10176 (full)' do 
-    let(:response) { service.get(type: "eldis", id: "C782", detail: "full") }
+    let(:response) { service.get(type: "r4d", id: "c_10176", detail: "full") }
+    let(:document) { response["results"].first }
 
     describe "document content" do 
+      specify { expect(document["linked_data_uri"]).to be    == "http://aims.fao.org/aos/agrovoc/c_10176" }
+      specify { expect(document["object_id"]).to be == "c_10176" }
+      specify { expect(document["object_type"]).to be == "theme" }
+      specify { expect(document["title"]).to be == "Crop yield" }
+      specify { expect(document["metadata_url"]).to be == "http://linked-development.org/openapi/r4d/get/themes/c_10176/full" }
+      specify { expect(document["site"]).to be == "r4d" }
+      specify { expect(document["children_url"]).to be == "http://linked-development.org/openapi/r4d/get_children/themes/c_10176/full" }
+      
+      specify { expect(document["name"]).to be == "Crop yield" }
       
     end
 
@@ -180,25 +190,30 @@ describe ThemeService do
       let(:json_output) { response.to_json }
       
       example "complete document" do
-        expect(JSON.parse(json_output)).to be == sample_json("eldis_theme_C782.json")
+        expect(JSON.parse(json_output)).to be == sample_json("r4d_theme_c_10176_full.json")
       end
     end
   end
 
   context 'r4d get c_10176 (short)' do 
-    let(:response) { service.get(type: "eldis", id: "C782", detail: "full") }
+    let(:response) { service.get(type: "r4d", id: "c_10176", detail: "short") }
+    let(:document) { response["results"].first }
 
     describe "document content" do 
+      specify { expect(document["linked_data_uri"]).to be == "http://aims.fao.org/aos/agrovoc/c_10176" }
+      specify { expect(document["object_id"]).to be == "c_10176" }
+      specify { expect(document["object_type"]).to be == "theme" }
+      specify { expect(document["title"]).to be == "Crop yield" }
+      specify { expect(document["metadata_url"]).to be == "http://linked-development.org/openapi/r4d/get/themes/c_10176/full" }
+      
     end
     
     describe "JSON output" do
       let(:json_output) { response.to_json }
       
       example "complete document" do
-        expect(JSON.parse(json_output)).to be == sample_json("eldis_theme_C782.json")
+        expect(JSON.parse(json_output)).to be == sample_json("r4d_theme_c_10176_short.json")
       end
     end
   end
 end
-  
-

@@ -1,7 +1,7 @@
 require 'rdf/vocab/faogeopol'
 require 'rdf/vocab/bibo'
 
-class ThemeRepository
+class ThemeRepository < AbstractRepository
 
   def set_details details
     @type = details.fetch(:type)
@@ -15,49 +15,84 @@ class ThemeRepository
   end
   
   def run_eldis_query details
-    set_details details
-    eldis_graph_uri = "http://linked-development.org/graph/eldis"
+    set_details details.merge 'type' => 'eldis'
+
+    map_graph_to_document(run_get_query)
+  end
+
+  def run_r4d_query details
+    set_details details.merge 'type' => 'r4d'
+    map_graph_to_document(run_get_query)
+  end
+  
+  private
+
+  def run_get_query
     theme_uri = theme_uri(@type, @doc_id)
     
     query_string = <<-SPARQL
-  PREFIX dcterms: <http://purl.org/dc/terms/>
-  PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-  PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+#{AbstractRepository.common_prefixes}
+
+
+CONSTRUCT {
+  <#{@theme_uri}> 
+    rdfs:label ?label ; 
+    dcterms:identifier ?parent_id ;
+    skos:narrower ?child_concept .
   
-  CONSTRUCT {
-    <#{@theme_uri}> 
-      rdfs:label ?label ; 
-      dcterms:identifier  ?id ;
-      skos:narrower ?child_concept .
-  
-    ?child_concept ?child_predicate ?child_object .
-  } WHERE {
-    GRAPH <#{eldis_graph_uri}> {
-      
+  ?child_concept 
+    dcterms:identifier ?child_id ;
+    ?child_predicate ?child_object .
+
+} WHERE {
+  {
+    GRAPH <http://linked-development.org/graph/r4d> {
+
+      <#{@theme_uri}> 
+           a skos:Concept ;
+           skos:prefLabel ?label .
+
+      BIND(replace(str(<#{@theme_uri}>), "http://aims.fao.org/aos/agrovoc/", '') AS ?parent_id)
+
+      OPTIONAL {
+        <#{@theme_uri}> skos:narrower ?child_concept .
+        BIND(replace(str(?child_concept), "http://aims.fao.org/aos/agrovoc/", '') AS ?child_id) .
+        ?child_concept ?child_predicate ?child_object ;
+        FILTER NOT EXISTS { ?child_concept skos:narrower ?something }
+      }
+    }
+  } UNION {
+    GRAPH <http://linked-development.org/graph/eldis> {
       <#{@theme_uri}> 
         a skos:Concept ;
-        skos:inScheme <http://linked-development.org/eldis/themes/C2/> ;
         rdfs:label ?label ;
-        dcterms:identifier ?id ;
-        skos:narrower ?child_concept .
-    
-      ?child_concept ?child_predicate ?child_object ;
+        dcterms:identifier ?parent_id .
+      
+      OPTIONAL { 
+        <#{@theme_uri}> skos:narrower ?child_concept .
+
+        ?child_concept 
+          dcterms:identifier ?child_id ;
+          ?child_predicate ?child_object .
+
         FILTER NOT EXISTS { ?child_concept skos:narrower ?something }
-  
-    } 
+      }
+    }
   }
+}
 SPARQL
 
-    query   = Tripod::SparqlQuery.new(query_string, uri: eldis_graph_uri)
+    #puts query_string
+    
+    # query   = Tripod::SparqlQuery.new(query_string, uri: eldis_graph_uri)
+    query   = Tripod::SparqlQuery.new(query_string)
     result  = Tripod::SparqlClient::Query.query(query.query, 'text/turtle')
     graph   = RDF::Graph.new.from_ttl(result)
 
-    map_graph_to_document graph
+    graph
   end
-
-  private
-
-  def map_graph_to_document graph
+  
+  def map_graph_to_document graph, 
     theme = { }
 
     theme_res = RDF::URI.new(@theme_uri)
@@ -73,11 +108,11 @@ SPARQL
     theme['object_id'] = theme_solution._object_id.value
     theme['object_type'] = 'theme'
     theme['title'] = theme_solution.label.value
-    theme['metadata_url'] = @metadata_url_generator.theme_url('eldis', theme_solution._object_id)
+    theme['metadata_url'] = @metadata_url_generator.theme_url(@type, theme_solution._object_id)
 
     if @detail === 'full'
-      theme['site'] = 'eldis'
-      theme['children_url'] = @metadata_url_generator.children_url('eldis', theme_solution._object_id)
+      theme['site'] = @type
+      theme['children_url'] = @metadata_url_generator.children_url(@type, theme_solution._object_id)
       theme['name'] = theme_solution.label.value
       
       child_solutions = RDF::Query.execute(graph) do |q|
@@ -92,23 +127,26 @@ SPARQL
           'level' => '1',
           'object_id' => s._object_id.value,
           'linked_data_url' => s.theme.to_s,
-          'metadata_url' => @metadata_url_generator.theme_url('eldis', s._object_id.value)
+          'metadata_url' => @metadata_url_generator.theme_url(@type, s._object_id.value)
         } unless s.theme.to_s === @theme_uri
       end
-      
-      theme['children_object_array'] = {'child' => filtered_solutions }
+ 
+     
+      theme['children_object_array'] = {'child' => filtered_solutions } if filtered_solutions.any?
       
     end
     
     theme
   end  
 
-  def run_r4d_query details
-    set_details details
-  end
-
   # Generate a resource URI for the theme, note this is different from a 'metadata_url'
   def theme_uri type, doc_id
-    "http://linked-development.org/#{type}/themes/#{doc_id}/"
+    if type === 'eldis'
+      "http://linked-development.org/#{type}/themes/#{doc_id}/"
+    elsif type === 'r4d'
+      "http://aims.fao.org/aos/agrovoc/#{doc_id}"
+    else
+      raise InvalidDocumentType, "Unexpected resource type #{type}."
+    end
   end
 end
