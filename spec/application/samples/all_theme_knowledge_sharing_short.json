@@ -1,0 +1,17 @@
+{
+    "results": [
+        {
+            "linked_data_uri": "http://dbpedia.org/resource/knowledge_sharing",
+            "object_id": "knowledge_sharing",
+            "object_type": "theme",
+            "title": "knowledge sharing",
+            // changed metadata_url from what the PHP API used to
+            // return, so it now always resolve it to the right graph
+            // (i.e. it should never be all) nor should it repeat the
+            // slug.
+            //
+            // "metadata_url": "http://linked-development.org/openapi/all/get/themes/knowledge_sharing/full/knowledge_sharing"
+            "metadata_url": "http://linked-development.org/openapi/r4d/get/themes/knowledge_sharing/full"
+        }
+    ]
+}

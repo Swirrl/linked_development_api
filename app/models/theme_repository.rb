@@ -5,9 +5,8 @@ class ThemeRepository < AbstractRepository
 
   def set_details details
     @type = details.fetch(:type)
-    @doc_id = details.fetch(:id)
+    @theme_uri = details.fetch(:resource_uri)
     @detail = details.fetch(:detail)
-    @theme_uri = theme_uri(@type, @doc_id)
   end
   
   def initialize
@@ -15,21 +14,18 @@ class ThemeRepository < AbstractRepository
   end
   
   def run_eldis_query details
-    set_details details.merge 'type' => 'eldis'
-
+    set_details details.merge :type => 'eldis'
     map_graph_to_document(run_get_query)
   end
 
   def run_r4d_query details
-    set_details details.merge 'type' => 'r4d'
+    set_details details.merge :type => 'r4d'
     map_graph_to_document(run_get_query)
   end
   
   private
 
   def run_get_query
-    theme_uri = theme_uri(@type, @doc_id)
-    
     query_string = <<-SPARQL
 #{AbstractRepository.common_prefixes}
 
@@ -49,10 +45,12 @@ CONSTRUCT {
     GRAPH <http://linked-development.org/graph/r4d> {
 
       <#{@theme_uri}> 
-           a skos:Concept ;
-           skos:prefLabel ?label .
+           a skos:Concept .
+      BIND(replace(str(<#{@theme_uri}>), "(http://aims.fao.org/aos/agrovoc/|http://dbpedia.org/resource/)", '') AS ?parent_id)
 
-      BIND(replace(str(<#{@theme_uri}>), "http://aims.fao.org/aos/agrovoc/", '') AS ?parent_id)
+      OPTIONAL { <#{@theme_uri}> skos:prefLabel ?label . }
+      OPTIONAL { <#{@theme_uri}> skos:preLabel ?label . }
+
 
       OPTIONAL {
         <#{@theme_uri}> skos:narrower ?child_concept .
@@ -84,7 +82,6 @@ SPARQL
 
     #puts query_string
     
-    # query   = Tripod::SparqlQuery.new(query_string, uri: eldis_graph_uri)
     query   = Tripod::SparqlQuery.new(query_string)
     result  = Tripod::SparqlClient::Query.query(query.query, 'text/turtle')
     graph   = RDF::Graph.new.from_ttl(result)
@@ -139,14 +136,5 @@ SPARQL
     theme
   end  
 
-  # Generate a resource URI for the theme, note this is different from a 'metadata_url'
-  def theme_uri type, doc_id
-    if type === 'eldis'
-      "http://linked-development.org/#{type}/themes/#{doc_id}/"
-    elsif type === 'r4d'
-      "http://aims.fao.org/aos/agrovoc/#{doc_id}"
-    else
-      raise InvalidDocumentType, "Unexpected resource type #{type}."
-    end
-  end
+
 end

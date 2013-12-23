@@ -4,7 +4,7 @@ class GetController < ApplicationController
   
   respond_to :xml, :json
 
-  rescue_from InvalidDocumentType, :with => :invalid_parameters
+  rescue_from LinkedDevelopmentError, :with => :invalid_parameters
   
   # Eg http://localhost:3000/openapi/eldis/get/documents/A64559/full
   def documents
