@@ -61,4 +61,11 @@ LinkedDevelopmentApi::Application.configure do
   # Send deprecation notices to registered listeners
   config.active_support.deprecation = :notify
 
+  Tripod.configure do |config|
+    config.query_endpoint   = 'http://sparql.linkeddev.swirrl.com/linkeddev/sparql'
+    config.data_endpoint   = 'http://sparql.linkeddev.swirrl.com/linkeddev/data'
+    # For hacking on rails console
+    config.update_endpoint  = 'http://sparql.linkeddev.swirrl.com/linkeddev/update'
+  end
+
 end

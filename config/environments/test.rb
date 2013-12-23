@@ -35,7 +35,7 @@ LinkedDevelopmentApi::Application.configure do
 
   Tripod.configure do |config|
     config.query_endpoint   = 'http://localhost:3030/linkeddev-test/sparql'
-    config.data_endpoint    = 'http://localhost:3030/linkeddev-test/data'
     config.update_endpoint  = 'http://localhost:3030/linkeddev-test/update'
+    config.data_endpoint  = 'http://localhost:3030/linkeddev-test/data'
   end
 end
