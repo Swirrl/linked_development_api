@@ -13,7 +13,7 @@ class ThemeService
     @theme_repository = dependencies.fetch(:theme_repository)
   end
 
-  def get(details)
+  def get details
     # The original DefaultQueryBuilder#createQuery uses FROM clauses
     # to restrict the results, which we're not re-implementing here yet
     # Silly hash re-structuring on purpose for now
@@ -45,6 +45,15 @@ class ThemeService
    
     {
       "results" => [result]
+    }
+  end
+
+  def get_all details
+    type = details.fetch(:type)
+
+    # TODO
+    {
+      'results' => results 
     }
   end
 
