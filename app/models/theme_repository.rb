@@ -5,7 +5,6 @@ class ThemeRepository < AbstractRepository
 
   def set_details details
     @type = details.fetch(:type)
-    @theme_uri = details.fetch(:resource_uri)
     @detail = details.fetch(:detail)
   end
   
@@ -13,25 +12,45 @@ class ThemeRepository < AbstractRepository
     @metadata_url_generator = MetadataURLGenerator.new("http://linked-development.org")
   end
   
-  def run_eldis_query details
+  def get_eldis details
     set_details details.merge :type => 'eldis'
+    @theme_uri = details.fetch(:resource_uri)
+
     map_graph_to_document(run_get_query)
   end
 
-  def run_r4d_query details
+  def get_r4d details
     set_details details.merge :type => 'r4d'
+    @theme_uri = details.fetch(:resource_uri)
+
     map_graph_to_document(run_get_query)
+  end
+
+  def get_all details
+    set_details details
+    # TODO
   end
   
   private
+  
+  # Generates a string that conforms to a VarOrIRIref in the SPARQL
+  # grammar.  If the supplied argument is nil then we return a string
+  # of '?theme_uri' othewise we return a SPARQL IRIRef (i.e. a '<URI>'
+  # string.)
+  def var_or_iriref maybe_uri
+    if maybe_uri
+      "<#{maybe_uri}>"
+    else
+      "?theme_uri"
+    end
+  end
 
   def run_get_query
     query_string = <<-SPARQL
 #{AbstractRepository.common_prefixes}
 
-
 CONSTRUCT {
-  <#{@theme_uri}> 
+  #{var_or_iriref(@theme_uri)}
     rdfs:label ?label ; 
     dcterms:identifier ?parent_id ;
     skos:narrower ?child_concept .
@@ -44,16 +63,15 @@ CONSTRUCT {
   {
     GRAPH <http://linked-development.org/graph/r4d> {
 
-      <#{@theme_uri}> 
+      #{var_or_iriref(@theme_uri)}
            a skos:Concept .
-      BIND(replace(str(<#{@theme_uri}>), "(http://aims.fao.org/aos/agrovoc/|http://dbpedia.org/resource/)", '') AS ?parent_id)
+      BIND(replace(str(#{var_or_iriref(@theme_uri)}), "(http://aims.fao.org/aos/agrovoc/|http://dbpedia.org/resource/)", '') AS ?parent_id)
 
-      OPTIONAL { <#{@theme_uri}> skos:prefLabel ?label . }
-      OPTIONAL { <#{@theme_uri}> skos:preLabel ?label . }
-
+      OPTIONAL { #{var_or_iriref(@theme_uri)} skos:prefLabel ?label . }
+      OPTIONAL { #{var_or_iriref(@theme_uri)} skos:preLabel ?label . }
 
       OPTIONAL {
-        <#{@theme_uri}> skos:narrower ?child_concept .
+        #{var_or_iriref(@theme_uri)} skos:narrower ?child_concept .
         BIND(replace(str(?child_concept), "http://aims.fao.org/aos/agrovoc/", '') AS ?child_id) .
         ?child_concept ?child_predicate ?child_object ;
         FILTER NOT EXISTS { ?child_concept skos:narrower ?something }
@@ -61,13 +79,13 @@ CONSTRUCT {
     }
   } UNION {
     GRAPH <http://linked-development.org/graph/eldis> {
-      <#{@theme_uri}> 
+      #{var_or_iriref(@theme_uri)} 
         a skos:Concept ;
         rdfs:label ?label ;
         dcterms:identifier ?parent_id .
       
       OPTIONAL { 
-        <#{@theme_uri}> skos:narrower ?child_concept .
+        #{var_or_iriref(@theme_uri)} skos:narrower ?child_concept .
 
         ?child_concept 
           dcterms:identifier ?child_id ;
@@ -88,8 +106,9 @@ SPARQL
 
     graph
   end
-  
-  def map_graph_to_document graph, 
+
+  # TODO generalise this for get_all
+  def map_graph_to_document graph
     theme = { }
 
     theme_res = RDF::URI.new(@theme_uri)
@@ -100,6 +119,8 @@ SPARQL
                   end)
     
     theme_solution = theme_solutions.first
+
+    return nil unless theme_solution.present?
 
     theme['linked_data_uri'] = @theme_uri
     theme['object_id'] = theme_solution._object_id.value
@@ -128,13 +149,9 @@ SPARQL
         } unless s.theme.to_s === @theme_uri
       end
  
-     
       theme['children_object_array'] = {'child' => filtered_solutions } if filtered_solutions.any?
-      
     end
     
     theme
   end  
-
-
 end

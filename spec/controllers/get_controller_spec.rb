@@ -9,10 +9,27 @@ describe GetController do
       ThemeService.stub(:build).and_return service
     end
 
+    context 'errors' do
+      it 'returns 404 on DocumentNotFound' do
+        service.stub(:get).and_raise DocumentNotFound
+        get :themes, graph: 'eldis', id: 'C9999999999999', detail: 'full', :format => :json
+        expect(response.status).to be 404 
+      end
+
+      it 'returns 400 on LinkedDevelopmentError' do 
+        service.stub(:get).and_raise LinkedDevelopmentError
+        get :themes, graph: 'eldis', id: 'C9999999999999', detail: 'full', :format => :json
+        expect(response.status).to be 400
+      end
+    end
+
+
     it 'delegates to the ThemeService' do
       service.should_receive(:get).with({type: 'eldis', id: 'C782', detail: 'full'})
       get :themes, graph: 'eldis', id: 'C782', detail: 'full', :format => :json
     end
+
+
   end
   
   describe 'GET documents' do 

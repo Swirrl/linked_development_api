@@ -68,26 +68,7 @@ describe DocumentService do
       }
     end
 
-    describe "JSON output" do
-      let(:json_output) { response.to_json }
-
-      example "complete document" do
-        expect(
-               sort_hash(JSON.parse(json_output))
-        ).to be == sort_hash(sample_json("eldis_document_A64559.json"))
-      end
-    end
-  end
-
-  context "ELDIS document A64559 (short)" do
-    let(:response) { service.get(type: "eldis", id: "A64559", detail: nil) }
-    let(:json_output) { response.to_json }
-
-    example "complete document" do
-      expect(
-             sort_hash(JSON.parse(json_output))
-      ).to be == sort_hash(sample_json("eldis_document_A64559_short.json"))
-    end
+    include_examples 'example documents', [[:eldis, :get, :document, 'A64559']] 
   end
 
   context "Multiple creators (ELDIS document A64840)" do
@@ -118,7 +99,7 @@ describe DocumentService do
   end
 
   context "Region coverage (ELDIS document A64882)" do
-  	let(:response) { service.get(type: "eldis", id: "A64882", detail: "full") }
+    let(:response) { service.get(type: "eldis", id: "A64882", detail: "full") }
     let(:document) { response["results"].first }
 
     describe "region" do

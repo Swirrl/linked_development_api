@@ -8,7 +8,7 @@
             // change URI's from what the PHP API returned to make them consistent.
             // "metadata_url": "http://linked-development.org/openapi/all/get/themes/knowledge_sharing/full/knowledge_sharing",
             "metadata_url": "http://linked-development.org/openapi/r4d/get/themes/knowledge_sharing/full",
-            "site": "all",
+            "site": "r4d",
             // change URI's from what the PHP API returned to make them consistent.
             // "children_url": "http://linked-development.org/openapi/all/get_children/themes/knowledge_sharing/full/",
             "children_url": "http://linked-development.org/openapi/r4d/get_children/themes/knowledge_sharing/full",

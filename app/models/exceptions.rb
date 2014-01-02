@@ -6,3 +6,6 @@ end
 class InvalidDocumentType < LinkedDevelopmentError
 
 end
+
+class DocumentNotFound < LinkedDevelopmentError
+end
