@@ -64,6 +64,12 @@
                      "object_id": "C1813",
                      "linked_data_url": "http://linked-development.org/eldis/themes/C1813/",
                      "metadata_url": "http://linked-development.org/openapi/eldis/get/themes/C1813/full"
+                    },
+                    {"object_name": "ICT for education", 
+                     "level": "1", 
+                     "object_id": "C790", 
+                     "linked_data_url": "http://linked-development.org/eldis/themes/C790/", 
+                     "metadata_url": "http://linked-development.org/openapi/eldis/get/themes/C790/full"
                     }
                 ]
             }

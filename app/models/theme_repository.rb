@@ -14,21 +14,33 @@ class ThemeRepository < AbstractRepository
   
   def get_eldis details
     set_details details.merge :type => 'eldis'
+    @limit = 1
     @theme_uri = details.fetch(:resource_uri)
 
-    map_graph_to_document(run_get_query)
+    map_graph_to_document(run_get_query).first
   end
 
   def get_r4d details
     set_details details.merge :type => 'r4d'
+    @limit = 1
     @theme_uri = details.fetch(:resource_uri)
 
-    map_graph_to_document(run_get_query)
+    map_graph_to_document(run_get_query).first
   end
 
-  def get_all details
+  def get_all details, limit
     set_details details
-    # TODO
+    @limit = limit
+    
+    query_string = build_base_query limit
+
+    Rails.logger.info query_string
+   
+    query   = Tripod::SparqlQuery.new(query_string)
+    result  = Tripod::SparqlClient::Query.query(query.query, 'text/turtle')
+    graph   = RDF::Graph.new.from_ttl(result)
+    
+    map_graph_to_document(graph)
   end
   
   private
@@ -45,8 +57,8 @@ class ThemeRepository < AbstractRepository
     end
   end
 
-  def run_get_query
-    query_string = <<-SPARQL
+  def construct
+    <<-ENDCONSTRUCT
 #{AbstractRepository.common_prefixes}
 
 CONSTRUCT {
@@ -57,49 +69,62 @@ CONSTRUCT {
   
   ?child_concept 
     dcterms:identifier ?child_id ;
+    rdfs:label ?child_label ; 
     ?child_predicate ?child_object .
+} 
+ENDCONSTRUCT
+  end
 
-} WHERE {
-  {
-    GRAPH <http://linked-development.org/graph/r4d> {
-
-      #{var_or_iriref(@theme_uri)}
-           a skos:Concept .
-      BIND(replace(str(#{var_or_iriref(@theme_uri)}), "(http://aims.fao.org/aos/agrovoc/|http://dbpedia.org/resource/)", '') AS ?parent_id)
-
-      OPTIONAL { #{var_or_iriref(@theme_uri)} skos:prefLabel ?label . }
-      OPTIONAL { #{var_or_iriref(@theme_uri)} skos:preLabel ?label . }
-
-      OPTIONAL {
-        #{var_or_iriref(@theme_uri)} skos:narrower ?child_concept .
-        BIND(replace(str(?child_concept), "http://aims.fao.org/aos/agrovoc/", '') AS ?child_id) .
-        ?child_concept ?child_predicate ?child_object ;
-        FILTER NOT EXISTS { ?child_concept skos:narrower ?something }
-      }
-    }
-  } UNION {
+  def build_eldis_base_query
+<<-SPARQL
     GRAPH <http://linked-development.org/graph/eldis> {
-      #{var_or_iriref(@theme_uri)} 
-        a skos:Concept ;
-        rdfs:label ?label ;
-        dcterms:identifier ?parent_id .
-      
+      { 
+        SELECT * WHERE {
+          #{var_or_iriref(@theme_uri)} 
+             a skos:Concept ;
+             skos:inScheme <http://linked-development.org/eldis/themes/C2/> ;
+             rdfs:label ?label ;
+             dcterms:identifier ?parent_id .
+        } #{maybe_limit_clause}
+      }
+
       OPTIONAL { 
         #{var_or_iriref(@theme_uri)} skos:narrower ?child_concept .
 
         ?child_concept 
           dcterms:identifier ?child_id ;
           ?child_predicate ?child_object .
-
-        FILTER NOT EXISTS { ?child_concept skos:narrower ?something }
       }
     }
-  }
-}
 SPARQL
+  end
 
-    #puts query_string
-    
+  def build_r4d_base_query
+<<-SPARQL
+    GRAPH <http://linked-development.org/graph/r4d> {
+      { 
+         SELECT * WHERE {
+            #{var_or_iriref(@theme_uri)} a skos:Concept .
+   
+            BIND(replace(str(#{var_or_iriref(@theme_uri)}), "(http://aims.fao.org/aos/agrovoc/|http://dbpedia.org/resource/)", '') AS ?parent_id)
+      
+            OPTIONAL { #{var_or_iriref(@theme_uri)} skos:prefLabel ?label . }
+            OPTIONAL { #{var_or_iriref(@theme_uri)} skos:preLabel ?label . }
+         } #{maybe_limit_clause}
+      } 
+      OPTIONAL {
+        #{var_or_iriref(@theme_uri)} skos:narrower ?child_concept .
+        OPTIONAL { ?child_concept skos:prefLabel ?child_label . }
+        OPTIONAL { ?child_concept skos:preLabel ?child_label . }
+        BIND(replace(str(?child_concept), "http://aims.fao.org/aos/agrovoc/", '') AS ?child_id) .
+      }
+    }
+SPARQL
+  end
+
+  def run_get_query
+    query_string = build_base_query
+
     query   = Tripod::SparqlQuery.new(query_string)
     result  = Tripod::SparqlClient::Query.query(query.query, 'text/turtle')
     graph   = RDF::Graph.new.from_ttl(result)
@@ -107,51 +132,46 @@ SPARQL
     graph
   end
 
-  # TODO generalise this for get_all
   def map_graph_to_document graph
-    theme = { }
+    theme_res = @theme_uri ? RDF::URI.new(@theme_uri) : :theme_uri
+    theme_solutions = RDF::Query.execute(graph) do |q| 
+      q.pattern [theme_res, RDF::RDFS.label,    :label]
+      q.pattern [theme_res, RDF::DC.identifier, :_object_id]
+    end.limit(@limit)
 
-    theme_res = RDF::URI.new(@theme_uri)
-    theme_solutions =
-      graph.query(RDF::Query.new do
-                    pattern [theme_res, RDF::RDFS.label,    :label]
-                    pattern [theme_res, RDF::DC.identifier, :_object_id]
-                  end)
-    
-    theme_solution = theme_solutions.first
+    theme_solutions.reduce([]) do |results, current_theme|
+      theme = { }
 
-    return nil unless theme_solution.present?
+      parent_uri = @theme_uri ? RDF::URI.new(@theme_uri) : current_theme.theme_uri
+      theme['linked_data_uri'] = parent_uri.to_s
+      theme['object_id'] = current_theme._object_id.value
+      theme['object_type'] = 'theme'
+      theme['title'] = current_theme.label.value
+      theme['metadata_url'] = @metadata_url_generator.theme_url(@type, current_theme._object_id)
 
-    theme['linked_data_uri'] = @theme_uri
-    theme['object_id'] = theme_solution._object_id.value
-    theme['object_type'] = 'theme'
-    theme['title'] = theme_solution.label.value
-    theme['metadata_url'] = @metadata_url_generator.theme_url(@type, theme_solution._object_id)
+      if @detail === 'full'
+        theme['site'] = @type
+        theme['children_url'] = @metadata_url_generator.children_url(@type, current_theme._object_id)
+        theme['name'] = current_theme.label.value # TODO - do we need to return name as well as title?
+        
+        child_solutions = RDF::Query.execute(graph) do |q|
+          q.pattern [parent_uri, RDF::SKOS.narrower, :child_uri]
+          q.pattern [:child_uri, RDF::RDFS.label,    :label]
+          q.pattern [:child_uri, RDF::DC.identifier, :_object_id]
+        end
 
-    if @detail === 'full'
-      theme['site'] = @type
-      theme['children_url'] = @metadata_url_generator.children_url(@type, theme_solution._object_id)
-      theme['name'] = theme_solution.label.value
+        child_themes = child_solutions.map do |s|
+          {'object_name' => s.label.value,
+           'level' => '1', # TODO generate level
+           'object_id' => s._object_id.value,
+           'linked_data_url' => s.child_uri.to_s,
+           'metadata_url' => @metadata_url_generator.theme_url(@type, s._object_id.value) }
+        end
+        
+        theme['children_object_array'] = {'child' => child_themes } if child_themes.any?
+      end
       
-      child_solutions = RDF::Query.execute(graph) do |q|
-        q.pattern [:theme, RDF::RDFS.label,    :label]
-        q.pattern [:theme, RDF::DC.identifier, :_object_id]
-      end
-
-      filtered_solutions = []
-      child_solutions.each do |s|
-        filtered_solutions << {
-          'object_name' => s.label.value,
-          'level' => '1',
-          'object_id' => s._object_id.value,
-          'linked_data_url' => s.theme.to_s,
-          'metadata_url' => @metadata_url_generator.theme_url(@type, s._object_id.value)
-        } unless s.theme.to_s === @theme_uri
-      end
- 
-      theme['children_object_array'] = {'child' => filtered_solutions } if filtered_solutions.any?
+      results << theme
     end
-    
-    theme
   end  
 end

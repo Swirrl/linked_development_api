@@ -27,7 +27,7 @@ module SampleJson
         let(:json_output) { response }
         
         example "matches example document #{filename_override || params_array.join('_')}_#{detail}.json" do
-          expect(json_output).to be == sample_json(filename)
+          expect(sort_json(json_output)).to be == sort_json(sample_json(filename))
         end
       end
     end
@@ -38,19 +38,22 @@ module SampleJson
   end
 
   # SORT JSON objects to help aid comparisons in tests.
-  def sort_hash unsorted_hash
+  def sort_json unsorted_hash
     sorted_hash = Hash.new
 
     unsorted_hash.keys.sort.reverse.each do |k| 
       v = unsorted_hash[k]
-      v = sort_hash(v) if v.class == Hash
+      v = sort_json(v) if v.class == Hash
       
       if v.class == Array
         v.each_with_index do |o, i| 
           if o.class == Hash
-            v[i] = sort_hash o
+            v[i] = sort_json o
           end
         end
+        
+        # crude assumption about sorting arrays if an object_id is present in a nested object
+        v = v.sort { |o1,o2| o1['object_id'] <=> o2['object_id'] } if v[0].present? && v[0]['object_id'].present?
       end
       
       sorted_hash[k] = v

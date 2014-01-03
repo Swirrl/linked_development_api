@@ -112,7 +112,7 @@ describe ThemeService do
     end
     
     context 'r4d' do
-
+      include_examples 'example documents', [[:r4d, :get_all, :theme], 'r4d_get_all_theme']
     end
     
     context 'all' do 

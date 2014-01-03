@@ -10,7 +10,7 @@ describe GetAllController do
     end
 
     it 'delegates to the ThemeService' do
-      service.should_receive(:get_all).with({type: 'eldis', detail: 'full'})
+      service.should_receive(:get_all).with({type: 'eldis', detail: 'full'}, anything())
       get :themes, graph: 'eldis', id: 'C782', detail: 'full', :format => :json
     end
   end

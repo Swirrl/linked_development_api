@@ -1,6 +1,6 @@
 require 'exceptions'
 
-class ThemeService
+class ThemeService < AbstractService
   class << self
     # Convenience factory method to construct a new DocumentService
     # with the usual dependencies
@@ -52,39 +52,19 @@ class ThemeService
     }
   end
 
-  def get_all details
+  def get_all details, limit=nil
     type = details.fetch(:type)
     raise InvalidDocumentType unless graph_valid? type
 
     # TODO
-    results = []
+    results = @theme_repository.get_all details, parse_limit(limit)
 
     {
       'results' => results 
     }
   end
 
-  def graph_valid? graph
-    %w[eldis r4d all].include?(graph)
-  end
-
-  def detail_valid? detail
-  ['full', 'short', nil].include? detail
-  end
-
   private
-
-  def is_eldis_id? identifier
-    identifier =~ /^C\d{1,}$/
-  end
-
-  def is_agrovoc_id? identifier
-    identifier =~ /^c_\d{1,}$/
-  end
-
-  def is_dbpedia_id? identifier
-    !is_eldis_id?(identifier) && !is_agrovoc_id?(identifier)
-  end
 
   # Generate a resource URI for the theme, note this is different from a 'metadata_url'
   def theme_uri doc_id
@@ -96,5 +76,5 @@ class ThemeService
       "http://dbpedia.org/resource/#{doc_id}"
     end
   end
-  
+
 end
