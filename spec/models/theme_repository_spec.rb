@@ -162,6 +162,8 @@ describe ThemeRepository do
 
 
   describe '#get_all' do 
+    # some rubbish, minimal tests... but then this stuff is awkward & brittle to test.
+
     context 'eldis' do
       describe 'short' do 
         let(:document) { repository.get_all({type: 'eldis', detail: 'short'}, 10) }
@@ -170,6 +172,64 @@ describe ThemeRepository do
         specify { expect(document.size).to be  == 10 }
         
         specify { expect(document[0]['linked_data_uri']).to match(/http:\/\/linked-development\.org\/eldis\/themes\/C[0-9]+\//) }
+      end
+
+      describe 'full' do 
+        let(:document) { repository.get_all({type: 'eldis', detail: 'full'}, 10) }
+
+        specify { expect(document.class).to be == Array }
+        specify { expect(document.size).to be  == 10 }
+        
+        specify { expect(document[0]['linked_data_uri']).to match(/http:\/\/linked-development\.org\/eldis\/themes\/C[0-9]+\//) }
+      end
+    end
+
+    context 'r4d' do
+      describe 'short' do 
+        let(:document) { repository.get_all({type: 'r4d', detail: 'short'}, 10) }
+
+        specify { expect(document.class).to be == Array }
+        specify { expect(document.size).to be  == 10 }
+        
+        specify { expect(document[0]['linked_data_uri']).to match(/http:\/\/dbpedia\.org\//) }
+      end
+
+      describe 'full' do 
+        let(:document) { repository.get_all({type: 'r4d', detail: 'full'}, 10) }
+
+        specify { expect(document.class).to be == Array }
+        specify { expect(document.size).to be  == 10 }
+        
+        specify { expect(document[0]['linked_data_uri']).to match(/http:\/\/dbpedia\.org\//) }
+      end
+    end
+
+    context 'all' do
+      describe 'short' do 
+        let(:document) { repository.get_all({type: 'all', detail: 'short'}, 10) }
+
+        specify { expect(document.class).to be == Array }
+        specify { expect(document.size).to be  == 10 }
+        
+        specify { expect(document[0]['linked_data_uri']).to match(/http:\/\/dbpedia\.org\//) }
+      end
+
+      describe 'full' do 
+        let(:document) { repository.get_all({type: 'all', detail: 'full'}, 10) }
+
+        specify { expect(document.class).to be == Array }
+        specify { expect(document.size).to be  == 10 }
+        
+        specify { expect(document[0]['linked_data_uri']).to match(/http:\/\/dbpedia\.org\//) }
+      end
+
+      # NOTE as we can't easily test that all the results are
+      # returned, at least test that we call both of the query clause
+      # builders for eldis/r4d.
+      it 'calls both the r4d and eldis query builders' do 
+        repository.should_receive(:build_eldis_base_query)
+        repository.should_receive(:build_r4d_base_query)
+        repository.get_all({type: 'all', detail: 'full'}, 10)
       end
     end
   end
