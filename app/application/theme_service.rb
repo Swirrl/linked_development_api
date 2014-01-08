@@ -10,7 +10,7 @@ class ThemeService < AbstractService
   end
 
   def initialize(dependencies = { })
-    @theme_repository = dependencies.fetch(:theme_repository)
+    @repository = dependencies.fetch(:theme_repository)
   end
 
   def get details
@@ -30,14 +30,14 @@ class ThemeService < AbstractService
     details.merge! :resource_uri => resource_uri
 
     result = if type == 'eldis' && is_eldis_id?(doc_id)
-               @theme_repository.get_eldis details
+               @repository.get_eldis details
              elsif type == 'r4d' && is_agrovoc_id?(doc_id) 
-               @theme_repository.get_r4d details
+               @repository.get_r4d details
              elsif type == 'all'
                  if is_dbpedia_id?(doc_id) || is_agrovoc_id?(doc_id)
-                   @theme_repository.get_r4d details 
+                   @repository.get_r4d details 
                  elsif is_eldis_id?(doc_id)
-                   @theme_repository.get_eldis details 
+                   @repository.get_eldis details 
                  else
                    raise LinkedDevelopmentError, "Unexpected :id format."
                  end
@@ -47,21 +47,16 @@ class ThemeService < AbstractService
 
     raise DocumentNotFound, "No resource found with id #{doc_id} not found" if result.nil?
 
-    {
-      "results" => [result]
-    }
+    wrap_result result
   end
 
   def get_all details, limit=nil
     type = details.fetch(:type)
     raise InvalidDocumentType unless graph_valid? type
 
-    # TODO
-    results = @theme_repository.get_all details, parse_limit(limit)
+    results = @repository.get_all details, parse_limit(limit)
 
-    {
-      'results' => results 
-    }
+    wrap_results results
   end
 
   private

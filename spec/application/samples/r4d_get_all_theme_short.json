@@ -70,5 +70,9 @@
       "title": "unplanned pregnancy",
       "metadata_url": "http://linked-development.org/openapi/r4d/get/themes/unplanned_pregnancy/full"
     }
-  ]
+  ],
+  "metadata": {
+    "start_offset": 0, 
+    "num_results": 34835
+  }
 }

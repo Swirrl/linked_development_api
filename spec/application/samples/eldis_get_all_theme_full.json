@@ -100,5 +100,10 @@
       "children_url": "http://linked-development.org/openapi/eldis/get_children/themes/C969/full",
       "name": "gender sensitive trade policy"
     }
-  ]
+  ],
+  "metadata": 
+    {
+        "start_offset": 0, 
+        "num_results": 1112
+    }
 }

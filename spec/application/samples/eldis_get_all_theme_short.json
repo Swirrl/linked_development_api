@@ -70,5 +70,10 @@
       "title": "gender sensitive trade policy",
       "metadata_url": "http://linked-development.org/openapi/eldis/get/themes/C969/full"
     }
-  ]
+  ],
+  "metadata": 
+    {
+        "start_offset": 0, 
+        "num_results": 1112
+    }
 }

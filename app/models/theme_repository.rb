@@ -3,33 +3,24 @@ require 'rdf/vocab/bibo'
 
 class ThemeRepository < AbstractRepository
 
-  def set_details details
-    @type = details.fetch(:type)
-    @detail = details.fetch(:detail)
-  end
-  
-  def initialize
-    @metadata_url_generator = MetadataURLGenerator.new("http://linked-development.org")
-  end
-  
   def get_eldis details
-    set_details details.merge :type => 'eldis'
+    set_common_details details.merge :type => 'eldis'
     @limit = 1
     @theme_uri = details.fetch(:resource_uri)
 
-    map_graph_to_document(run_get_query).first
+    process_one_or_many_results(run_get_query).first
   end
 
   def get_r4d details
-    set_details details.merge :type => 'r4d'
+    set_common_details details.merge :type => 'r4d'
     @limit = 1
     @theme_uri = details.fetch(:resource_uri)
 
-    map_graph_to_document(run_get_query).first
+    process_one_or_many_results(run_get_query).first
   end
 
   def get_all details, limit
-    set_details details
+    set_common_details details
     @limit = limit
     
     query_string = build_base_query limit
@@ -40,52 +31,34 @@ class ThemeRepository < AbstractRepository
     result  = Tripod::SparqlClient::Query.query(query.query, 'text/turtle')
     graph   = RDF::Graph.new.from_ttl(result)
     
-    map_graph_to_document(graph)
+    process_one_or_many_results(graph)
   end
   
   private
   
-  # Generates a string that conforms to a VarOrIRIref in the SPARQL
-  # grammar.  If the supplied argument is nil then we return a string
-  # of '?theme_uri' othewise we return a SPARQL IRIRef (i.e. a '<URI>'
-  # string.)
-  def var_or_iriref maybe_uri
-    if maybe_uri
-      "<#{maybe_uri}>"
-    else
-      "?theme_uri"
-    end
-  end
-
   def construct
-    <<-ENDCONSTRUCT
-#{AbstractRepository.common_prefixes}
+    <<-ENDCONSTRUCT.strip_heredoc
+    #{common_prefixes}
 
-CONSTRUCT {
-  #{var_or_iriref(@theme_uri)}
-    rdfs:label ?label ; 
-    dcterms:identifier ?parent_id ;
-    skos:narrower ?child_concept .
-  
-  ?child_concept 
-    dcterms:identifier ?child_id ;
-    rdfs:label ?child_label ; 
-    ?child_predicate ?child_object .
-} 
-ENDCONSTRUCT
+    CONSTRUCT {
+      #{var_or_iriref(@theme_uri)}
+        rdfs:label ?label ; 
+        dcterms:identifier ?parent_id ;
+        skos:narrower ?child_concept .
+      
+      ?child_concept 
+        dcterms:identifier ?child_id ;
+        rdfs:label ?child_label ; 
+        ?child_predicate ?child_object .
+    } 
+    ENDCONSTRUCT
   end
 
   def build_eldis_base_query
-<<-SPARQL
+    <<-SPARQL.strip_heredoc
     GRAPH <http://linked-development.org/graph/eldis> {
       { 
-        SELECT * WHERE {
-          #{var_or_iriref(@theme_uri)} 
-             a skos:Concept ;
-             skos:inScheme <http://linked-development.org/eldis/themes/C2/> ;
-             rdfs:label ?label ;
-             dcterms:identifier ?parent_id .
-        } #{maybe_limit_clause}
+          #{primary_eldis_subquery} #{maybe_limit_clause}
       }
 
       OPTIONAL { 
@@ -96,22 +69,28 @@ ENDCONSTRUCT
           ?child_predicate ?child_object .
       }
     }
-SPARQL
+    SPARQL
+  end
+
+  def primary_eldis_subquery
+    <<-SPARQL.strip_heredoc
+    SELECT * WHERE {
+      #{var_or_iriref(@theme_uri)} 
+         a skos:Concept ;
+         skos:inScheme <http://linked-development.org/eldis/themes/C2/> ;
+         rdfs:label ?label ;
+         dcterms:identifier ?parent_id .
+    }
+    SPARQL
   end
 
   def build_r4d_base_query
-<<-SPARQL
+    <<-SPARQL.strip_heredoc
     GRAPH <http://linked-development.org/graph/r4d> {
-      { 
-         SELECT * WHERE {
-            #{var_or_iriref(@theme_uri)} a skos:Concept .
-   
-            BIND(replace(str(#{var_or_iriref(@theme_uri)}), "(http://aims.fao.org/aos/agrovoc/|http://dbpedia.org/resource/)", '') AS ?parent_id)
-      
-            OPTIONAL { #{var_or_iriref(@theme_uri)} skos:prefLabel ?label . }
-            OPTIONAL { #{var_or_iriref(@theme_uri)} skos:preLabel ?label . }
-         } #{maybe_limit_clause}
-      } 
+      {
+         #{primary_r4d_subquery} #{maybe_limit_clause}
+      }
+
       OPTIONAL {
         #{var_or_iriref(@theme_uri)} skos:narrower ?child_concept .
         OPTIONAL { ?child_concept skos:prefLabel ?child_label . }
@@ -119,7 +98,20 @@ SPARQL
         BIND(replace(str(?child_concept), "http://aims.fao.org/aos/agrovoc/", '') AS ?child_id) .
       }
     }
-SPARQL
+    SPARQL
+  end
+
+  def primary_r4d_subquery
+    <<-SPARQL.strip_heredoc
+         SELECT * WHERE {
+            #{var_or_iriref(@theme_uri)} a skos:Concept .
+   
+            BIND(replace(str(#{var_or_iriref(@theme_uri)}), "(http://aims.fao.org/aos/agrovoc/|http://dbpedia.org/resource/)", '') AS ?parent_id)
+      
+            OPTIONAL { #{var_or_iriref(@theme_uri)} skos:prefLabel ?label . }
+            OPTIONAL { #{var_or_iriref(@theme_uri)} skos:preLabel ?label . }
+         }
+       SPARQL
   end
 
   def run_get_query
@@ -132,14 +124,18 @@ SPARQL
     graph
   end
 
-  def map_graph_to_document graph
+  def get_solutions_from_graph graph
     theme_res = @theme_uri ? RDF::URI.new(@theme_uri) : :theme_uri
+
     theme_solutions = RDF::Query.execute(graph) do |q| 
       q.pattern [theme_res, RDF::RDFS.label,    :label]
       q.pattern [theme_res, RDF::DC.identifier, :_object_id]
     end.limit(@limit)
 
-    theme_solutions.reduce([]) do |results, current_theme|
+    theme_solutions
+  end
+
+  def process_each_result graph, current_theme
       theme = { }
 
       parent_uri = @theme_uri ? RDF::URI.new(@theme_uri) : current_theme.theme_uri
@@ -170,8 +166,46 @@ SPARQL
         
         theme['children_object_array'] = {'child' => child_themes } if child_themes.any?
       end
-      
-      results << theme
+      theme
+  end
+
+  def apply_graph_type_restriction
+    query_pattern = if @type == 'all'
+                      
+                    else
+                      # apply graph restriction
+                      "GRAPH <http://linked-development.org/graph/#{@type}> { #{query_str} }"
+                    end
+    query_pattern
+  end
+
+  # TODO consider whether this should be here or in ThemeRepository,
+  # as it's currently not used in DocumentRepository.
+  def where_clause
+    if @type == 'eldis'
+      "WHERE { #{build_eldis_base_query} }"
+    elsif @type == 'r4d'
+      "WHERE { #{build_r4d_base_query} }"
+    else # all
+      "WHERE { #{unionise(build_r4d_base_query, build_eldis_base_query)} }"
     end
-  end  
+  end
+
+  def totalise_query
+    query_pattern = if @type == 'r4d'
+                      graphise('r4d', primary_r4d_subquery)
+                    elsif @type == 'eldis'
+                      graphise('eldis', primary_eldis_subquery)
+                    else # all
+                      unionise(graphise('eldis', primary_eldis_subquery), graphise('r4d', primary_r4d_subquery))
+                    end
+    
+    <<-SPARQL.strip_heredoc
+    #{common_prefixes}
+
+    SELECT (COUNT(#{var_or_iriref(@theme_uri)}) AS ?total) WHERE { 
+       #{query_pattern}
+    }
+    SPARQL
+  end
 end

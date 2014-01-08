@@ -11,12 +11,20 @@ describe GetAllController do
 
     it 'delegates to the ThemeService' do
       service.should_receive(:get_all).with({type: 'eldis', detail: 'full'}, anything())
-      get :themes, graph: 'eldis', id: 'C782', detail: 'full', :format => :json
+      get :themes, graph: 'eldis', detail: 'full', :format => :json
     end
   end
   
   describe 'GET documents' do 
-    pending
+    before :each do 
+      DocumentService.stub(:build).and_return service
+    end
+
+    it 'delegates to the ThemeService' do
+      service.should_receive(:get_all).with({type: 'eldis', detail: 'full'}, anything())
+      get :documents, graph: 'eldis', detail: 'full', :format => :json
+    end
+
   end
 
   describe 'GET regions' do 

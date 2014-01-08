@@ -25,4 +25,21 @@ class AbstractService
     !is_eldis_id?(identifier) && !is_agrovoc_id?(identifier)
   end
 
+  def wrap_result result
+    {
+      "results" => [result]
+    }
+  end
+  
+  def wrap_results results
+    # TODO generate summary
+    {
+      'results' => results,
+        "metadata" => {
+                       "num_results"   => @repository.total_results_of_last_query,
+                       "start_offset"  => 0
+                      }
+    }
+  end
+  
 end

@@ -59,15 +59,6 @@ describe DocumentService do
       specify { expect(document["urls"]).to be == [ ] }
     end
 
-    describe "metadata" do
-      specify {
-        expect(response["metadata"]).to be == {
-            "num_results"   => "Unknown",
-            "start_offset"  => 0
-        }
-      }
-    end
-
     include_examples 'example documents', [[:eldis, :get, :document, 'A64559']] 
   end
 

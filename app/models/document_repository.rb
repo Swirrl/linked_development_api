@@ -5,124 +5,11 @@ require 'rdf/vocab/bibo'
 #  Comments beginning PHP: are copied from the original PHP source
 
 class DocumentRepository < AbstractRepository
-  # There's some Ruby code in this file too, if you scroll down long enough
-  GET_DOCUMENT_QUERY_TEMPLATE = <<-SPARQL
-    #{common_prefixes}
-
-    CONSTRUCT {
-      ?resource a                 bibo:Article ;
-                dcterms:title     ?title ;
-                dcterms:abstract  ?abstract ;
-                dcterms:creator   ?creator ;
-                dcterms:subject   ?subject ;
-                bibo:uri          ?uri .
-
-      ?subject rdfs:label         ?subjectTitle ;
-               dcterms:identifier ?subjectID .
-
-      # Term relationships
-      ?subjectParent  skos:narrower       ?subject ;
-                      rdfs:label          ?subjectParentLabel ;
-                      dcterms:identifier  ?subjectParentID .
-
-      # Coverage
-      ?resource dcterms:coverage    ?coverage .
-      ?coverage fao:codeISO2        ?coverageISO ;
-                fao:codeUN          ?coverageUN ;
-                dcterms:identifier  ?coverageID ;
-                rdfs:label          ?coverageTitle.
-
-      ?resource dcterms:language    ?language ;
-                dcterms:identifier  ?identifier ;
-                rdfs:seeAlso        ?document ;
-                dcterms:date        ?date .
-
-      ?resource dcterms:publisher     ?publisher .
-      ?publisher  foaf:name           ?publisherName ;
-                  dcterms:identifier  ?publisherID ;
-                  vcard:hasAddress    ?publisherAddress.
-
-      ?publisherAddress vcard:country ?publisherCountry.
-    }
-
-    WHERE {
-      VALUES ?resource { <%{uri}> } .
-
-      ?resource a             bibo:Article ;
-                dcterms:title ?title .
-
-      OPTIONAL { ?resource dcterms:abstract ?abstract }
-
-      # Creators
-      # Handle cases where Creator is directly attached (Eldis), or through a blank node (R4D)
-      OPTIONAL {
-        {
-          ?resource dcterms:creator ?creator .
-        } UNION {
-          ?resource dcterms:creator/foaf:name ?creator .
-        }
-        FILTER(isLiteral(?creator))
-      }
-
-      # Subjects
-      OPTIONAL {
-        ?resource dcterms:subject ?subject .
-        ?subject rdfs:label ?subjectTitle .
-        OPTIONAL {
-            ?subject dcterms:identifier ?subjectID .
-        }
-        OPTIONAL {
-          ?subjectParent skos:narrower ?subject
-          # Uncomment out the line below to search up the category tree and give all the required steps for building a category path
-          # This is expensive, so unless there are use-cases drawing on the category tree from the API we may want to leave it out
-          # OPTION (transitive, t_max(4), t_in(?subject), t_out(?subjectParent), t_step("step_no") as ?level)
-          .
-          ?subjectParent rdfs:label ?subjectParentLabel .
-          OPTIONAL { ?subjectParent dcterms:identifier ?subjectParentID . }
-        }
-      }
-
-      # Coverage
-      OPTIONAL {
-        ?resource dcterms:coverage ?coverage.
-        # Handle for different ways in which coverage may be labelled.
-        {
-          ?coverage rdfs:label ?coverageTitle
-        }
-        UNION
-        {
-          ?coverage fao:nameList ?coverageTitle .
-          FILTER(lang(?coverageTitle) = "en" || lang(?coverageTitle) = "")
-        }
-        OPTIONAL { ?coverage dcterms:identifier ?coverageID }
-        OPTIONAL { ?coverage fao:codeISO2 ?coverageISO }
-        OPTIONAL { ?coverage fao:codeUN ?coverageUN }
-      }
-
-      # Language
-      OPTIONAL { ?resource dcterms:language ?language }
-      # Identifiers
-      OPTIONAL { ?resource dcterms:identifier ?identifier }
-      # SeeAlso
-      OPTIONAL { ?resource rdfs:seeAlso ?document }
-      # Date
-      OPTIONAL { ?resource dcterms:date ?date }
-      # Publisher Information
-      OPTIONAL {
-        ?resource dcterms:publisher ?publisher .
-        OPTIONAL { ?publisher foaf:name ?publisherName }
-      }
-      # URI to the document
-      OPTIONAL {
-        ?resource bibo:uri ?uri
-      }
-    }
-  SPARQL
 
   def find(details)
-    type        = details.fetch(:type)
+    set_common_details details
+
     document_id = details.fetch(:id)
-    detail      = details.fetch(:detail)
 
     # From the original GetQueryBuilder->createQuery
     # (This appears to be hard-coded to eldis URIs only)
@@ -134,21 +21,68 @@ class DocumentRepository < AbstractRepository
     # PHP: For now we base graph selection on the ID.
     #      ELDIS IDs start with A, whereas R4D are numerical.
     #      Graph will already be respected by the graph query.
-    uri =
+    @document_uri =
       if document_id =~ /^A/
         "http://linked-development.org/eldis/output/#{document_id}/"
       else
         "http://linked-development.org/r4d/output/#{document_id}/"
       end
 
-    query   = Tripod::SparqlQuery.new(GET_DOCUMENT_QUERY_TEMPLATE, uri: uri)
+    query   = Tripod::SparqlQuery.new(build_base_query)
     result  = Tripod::SparqlClient::Query.query(query.query, 'text/turtle')
     graph   = RDF::Graph.new.from_ttl(result)
-    map_graph_to_document(
-      graph,
-      detail,
-      details.fetch(:metadata_url_generator)
+
+    process_one_or_many_results(graph).first
+  end
+
+  def get_all details, limit
+    set_common_details details
+    @limit = limit
+    @document_uri = nil # ask for multiple documents
+
+    query   = Tripod::SparqlQuery.new(build_base_query)
+    result  = Tripod::SparqlClient::Query.query(query.query, 'text/turtle')
+    graph   = RDF::Graph.new.from_ttl(result)
+
+    process_one_or_many_results(graph)
+  end
+
+  def apply_graph_type_restriction query_str
+    query_pattern = if @type == 'all'
+                      query_str
+                    else
+                      # apply graph restriction
+                      "GRAPH <http://linked-development.org/graph/#{@type}> { #{query_str} }"
+                    end
+    query_pattern
+  end
+
+  def totalise_query
+    base_query_pattern = '?articles a bibo:Article .'
+    
+    query_pattern = apply_graph_type_restriction(base_query_pattern)
+
+    <<-TOTALISE
+#{common_prefixes}
+SELECT (COUNT(?articles) AS ?total) WHERE {
+      #{query_pattern}
+}
+TOTALISE
+  end
+
+  private
+
+  def get_solutions_from_graph graph
+    document_solutions = graph.query(
+      RDF::Query.new do
+        pattern [:document, RDF.type,           RDF::URI.new("http://purl.org/ontology/bibo/Article")]
+        pattern [:document, RDF::DC.title,      :title]
+        pattern [:document, RDF::DC.identifier, :_object_id] # :object_id is a reserved method name :-)
+        pattern [:document, RDF::DC.date,       :publication_date]
+        pattern [:document, RDF::RDFS.seeAlso,  :website_url], optional: true
+      end
     )
+    document_solutions
   end
   
   # Once we have a local graph (via the CONSTRUCT) we use this method
@@ -162,20 +96,8 @@ class DocumentRepository < AbstractRepository
   # 
   # PHP: We currently don't implement category_subject as this data is not captured
   #      in the R4D RDF or in the data import coming from ELDIS
-  def map_graph_to_document(graph, detail, metadata_url_generator)
+  def process_each_result graph, document_solution
     document = { }
-
-    document_solutions = graph.query(
-      RDF::Query.new do
-        pattern [:document, RDF.type,           RDF::URI.new("http://purl.org/ontology/bibo/Article")]
-        pattern [:document, RDF::DC.title,      :title]
-        pattern [:document, RDF::DC.identifier, :_object_id] # :object_id is a reserved method name :-)
-        pattern [:document, RDF::DC.date,       :publication_date]
-        pattern [:document, RDF::RDFS.seeAlso,  :website_url], optional: true
-      end
-    )
-
-    document_solution = document_solutions.first
 
     document_uri        = document_solution.document
     document_object_id  = document_solution._object_id.object
@@ -183,13 +105,13 @@ class DocumentRepository < AbstractRepository
 
     # PHP: Custom property not originally in the IDS API
     document["linked_data_uri"] = document_uri.to_s
-    document["metadata_url"]    = metadata_url_generator.document_url(site, document_object_id)
+    document["metadata_url"]    = @metadata_url_generator.document_url(site, document_object_id)
     document["object_type"]     = "Document"
     document["object_id"]       = document_object_id
     title                       = document_solution.title.object
     document["title"]           = title
 
-    if detail == "full"
+    if @detail == "full"
       document["name"]              = document_solution.title.object
       # Note: we also use site later for the metadata URL generation, which may not be correct
       document["site"]              = site
@@ -250,7 +172,7 @@ class DocumentRepository < AbstractRepository
         document["category_theme_array"]["theme"] << {
           "archived"      => "false",   # Original PHP was a hard-coded string
           "level"         => "unknown", # Original PHP was a hard-coded string
-          "metadata_url"  => metadata_url_generator.theme_url(site, _object_id),
+          "metadata_url"  => @metadata_url_generator.theme_url(site, _object_id),
           "object_id"     => _object_id,
           "object_name"   => theme_solution["object_name"].object,
           "object_type"   => "theme"
@@ -282,7 +204,7 @@ class DocumentRepository < AbstractRepository
           document["country_focus_array"]["Country"] << {
             "alternative_name"    => label,
             "iso_two_letter_code" => iso_two_letter_code,
-            "metadata_url"        => metadata_url_generator.country_url(site, iso_two_letter_code),
+            "metadata_url"        => @metadata_url_generator.country_url(site, iso_two_letter_code),
             "object_id"           => iso_two_letter_code,
             "object_name"         => label,
             "object_type"         => "Country"
@@ -302,7 +224,7 @@ class DocumentRepository < AbstractRepository
           document["category_region_array"]["Region"] << {
             "archived"      => "false", # Original PHP was a hard-coded string
             "deleted"       => "0",     # Original PHP was a hard-coded string
-            "metadata_url"  => metadata_url_generator.region_url(site, coverage_id),
+            "metadata_url"  => @metadata_url_generator.region_url(site, coverage_id),
             "object_id"     => coverage_id,
             "object_name"   => label,
             "object_type"   => "region"
@@ -321,5 +243,136 @@ class DocumentRepository < AbstractRepository
     end
 
     document
+  end
+
+  def construct
+    <<-ENDCONSTRUCT
+    CONSTRUCT {
+      #{var_or_iriref(@document_uri)} a                 bibo:Article ;
+                dcterms:title     ?title ;
+                dcterms:abstract  ?abstract ;
+                dcterms:creator   ?creator ;
+                dcterms:subject   ?subject ;
+                bibo:uri          ?uri .
+
+      ?subject rdfs:label         ?subjectTitle ;
+               dcterms:identifier ?subjectID .
+
+      # Term relationships
+      ?subjectParent  skos:narrower       ?subject ;
+                      rdfs:label          ?subjectParentLabel ;
+                      dcterms:identifier  ?subjectParentID .
+
+      # Coverage
+      #{var_or_iriref(@document_uri)} dcterms:coverage    ?coverage .
+      ?coverage fao:codeISO2        ?coverageISO ;
+                fao:codeUN          ?coverageUN ;
+                dcterms:identifier  ?coverageID ;
+                rdfs:label          ?coverageTitle.
+
+      #{var_or_iriref(@document_uri)} dcterms:language    ?language ;
+                dcterms:identifier  ?identifier ;
+                rdfs:seeAlso        ?document ;
+                dcterms:date        ?date .
+
+      #{var_or_iriref(@document_uri)} dcterms:publisher     ?publisher .
+      ?publisher  foaf:name           ?publisherName ;
+                  dcterms:identifier  ?publisherID ;
+                  vcard:hasAddress    ?publisherAddress.
+
+      ?publisherAddress vcard:country ?publisherCountry.
+    }
+ENDCONSTRUCT
+  end
+
+  # the primary article selection query.  Everything else is optional.
+  def primary_selection_query
+    graph_pattern = <<-GP
+      #{var_or_iriref(@document_uri)} a bibo:Article ;
+                dcterms:title ?title .
+GP
+    
+    <<-PRIMARY
+      { 
+          SELECT * WHERE {
+            #{apply_graph_type_restriction(graph_pattern)}
+          } #{maybe_limit_clause}
+      }
+PRIMARY
+  end
+
+  def where_clause
+    <<-SPARQL
+    WHERE {
+    
+      #{primary_selection_query}  
+    
+      OPTIONAL { #{var_or_iriref(@document_uri)} dcterms:abstract ?abstract }
+
+      # Creators
+      # Handle cases where Creator is directly attached (Eldis), or through a blank node (R4D)
+      OPTIONAL {
+        {
+          #{var_or_iriref(@document_uri)} dcterms:creator ?creator .
+        } UNION {
+          #{var_or_iriref(@document_uri)} dcterms:creator/foaf:name ?creator .
+        }
+        FILTER(isLiteral(?creator))
+      }
+
+      # Subjects
+      OPTIONAL {
+        #{var_or_iriref(@document_uri)} dcterms:subject ?subject .
+        ?subject rdfs:label ?subjectTitle .
+        OPTIONAL {
+            ?subject dcterms:identifier ?subjectID .
+        }
+        OPTIONAL {
+          ?subjectParent skos:narrower ?subject
+          # Uncomment out the line below to search up the category tree and give all the required steps for building a category path
+          # This is expensive, so unless there are use-cases drawing on the category tree from the API we may want to leave it out
+          # OPTION (transitive, t_max(4), t_in(?subject), t_out(?subjectParent), t_step("step_no") as ?level)
+          .
+          ?subjectParent rdfs:label ?subjectParentLabel .
+          OPTIONAL { ?subjectParent dcterms:identifier ?subjectParentID . }
+        }
+      }
+
+      # Coverage
+      OPTIONAL {
+        #{var_or_iriref(@document_uri)} dcterms:coverage ?coverage.
+        # Handle for different ways in which coverage may be labelled.
+        {
+          ?coverage rdfs:label ?coverageTitle
+        }
+        UNION
+        {
+          ?coverage fao:nameList ?coverageTitle .
+          FILTER(lang(?coverageTitle) = "en" || lang(?coverageTitle) = "")
+        }
+        OPTIONAL { ?coverage dcterms:identifier ?coverageID }
+        OPTIONAL { ?coverage fao:codeISO2 ?coverageISO }
+        OPTIONAL { ?coverage fao:codeUN ?coverageUN }
+      }
+
+      # Language
+      OPTIONAL { #{var_or_iriref(@document_uri)} dcterms:language ?language }
+      # Identifiers
+      OPTIONAL { #{var_or_iriref(@document_uri)} dcterms:identifier ?identifier }
+      # SeeAlso
+      OPTIONAL { #{var_or_iriref(@document_uri)} rdfs:seeAlso ?document }
+      # Date
+      OPTIONAL { #{var_or_iriref(@document_uri)} dcterms:date ?date }
+      # Publisher Information
+      OPTIONAL {
+        #{var_or_iriref(@document_uri)} dcterms:publisher ?publisher .
+        OPTIONAL { ?publisher foaf:name ?publisherName }
+      }
+      # URI to the document
+      OPTIONAL {
+        #{var_or_iriref(@document_uri)} bibo:uri ?uri
+      }
+    }
+  SPARQL
   end
 end
