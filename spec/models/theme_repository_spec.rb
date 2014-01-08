@@ -227,8 +227,8 @@ describe ThemeRepository do
       # returned, at least test that we call both of the query clause
       # builders for eldis/r4d.
       it 'calls both the r4d and eldis query builders' do 
-        repository.should_receive(:build_eldis_base_query)
-        repository.should_receive(:build_r4d_base_query)
+        repository.should_receive(:eldis_subquery)
+        repository.should_receive(:r4d_subquery)
         repository.get_all({type: 'all', detail: 'full'}, 10)
       end
     end

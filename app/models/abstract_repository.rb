@@ -39,9 +39,25 @@ PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
     @detail = details.fetch(:detail)
   end
   
-  def build_base_query limit=nil
-    query = common_prefixes << construct << where_clause
-    query
+  def build_base_query
+    <<-SPARQL
+      #{common_prefixes}
+
+      #{construct}
+      #{where_clause}
+    SPARQL
+  end
+
+  # TODO consider whether this should be here or in ThemeRepository,
+  # as it's currently overriden in DocumentRepository.
+  def where_clause
+    if @type == 'eldis'
+      "WHERE { #{eldis_subquery} }"
+    elsif @type == 'r4d'
+      "WHERE { #{r4d_subquery} }"
+    else # all
+      "WHERE { #{unionise(r4d_subquery, eldis_subquery)} }"
+    end
   end
 
   def maybe_limit_clause

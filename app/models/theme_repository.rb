@@ -23,9 +23,9 @@ class ThemeRepository < AbstractRepository
     set_common_details details
     @limit = limit
     
-    query_string = build_base_query limit
-
-    Rails.logger.info query_string
+    query_string = build_base_query
+    
+    #Rails.logger.info query_string
    
     query   = Tripod::SparqlQuery.new(query_string)
     result  = Tripod::SparqlClient::Query.query(query.query, 'text/turtle')
@@ -54,11 +54,11 @@ class ThemeRepository < AbstractRepository
     ENDCONSTRUCT
   end
 
-  def build_eldis_base_query
+  def eldis_subquery
     <<-SPARQL.strip_heredoc
     GRAPH <http://linked-development.org/graph/eldis> {
       { 
-          #{primary_eldis_subquery} #{maybe_limit_clause}
+          #{primary_eldis_select} #{maybe_limit_clause}
       }
 
       OPTIONAL { 
@@ -72,7 +72,7 @@ class ThemeRepository < AbstractRepository
     SPARQL
   end
 
-  def primary_eldis_subquery
+  def primary_eldis_select
     <<-SPARQL.strip_heredoc
     SELECT * WHERE {
       #{var_or_iriref(@theme_uri)} 
@@ -84,11 +84,11 @@ class ThemeRepository < AbstractRepository
     SPARQL
   end
 
-  def build_r4d_base_query
+  def r4d_subquery
     <<-SPARQL.strip_heredoc
     GRAPH <http://linked-development.org/graph/r4d> {
       {
-         #{primary_r4d_subquery} #{maybe_limit_clause}
+         #{primary_r4d_select} #{maybe_limit_clause}
       }
 
       OPTIONAL {
@@ -101,7 +101,7 @@ class ThemeRepository < AbstractRepository
     SPARQL
   end
 
-  def primary_r4d_subquery
+  def primary_r4d_select
     <<-SPARQL.strip_heredoc
          SELECT * WHERE {
             #{var_or_iriref(@theme_uri)} a skos:Concept .
@@ -169,35 +169,13 @@ class ThemeRepository < AbstractRepository
       theme
   end
 
-  def apply_graph_type_restriction
-    query_pattern = if @type == 'all'
-                      
-                    else
-                      # apply graph restriction
-                      "GRAPH <http://linked-development.org/graph/#{@type}> { #{query_str} }"
-                    end
-    query_pattern
-  end
-
-  # TODO consider whether this should be here or in ThemeRepository,
-  # as it's currently not used in DocumentRepository.
-  def where_clause
-    if @type == 'eldis'
-      "WHERE { #{build_eldis_base_query} }"
-    elsif @type == 'r4d'
-      "WHERE { #{build_r4d_base_query} }"
-    else # all
-      "WHERE { #{unionise(build_r4d_base_query, build_eldis_base_query)} }"
-    end
-  end
-
   def totalise_query
     query_pattern = if @type == 'r4d'
-                      graphise('r4d', primary_r4d_subquery)
+                      graphise('r4d', primary_r4d_select)
                     elsif @type == 'eldis'
-                      graphise('eldis', primary_eldis_subquery)
+                      graphise('eldis', primary_eldis_select)
                     else # all
-                      unionise(graphise('eldis', primary_eldis_subquery), graphise('r4d', primary_r4d_subquery))
+                      unionise(graphise('eldis', primary_eldis_select), graphise('r4d', primary_r4d_select))
                     end
     
     <<-SPARQL.strip_heredoc
