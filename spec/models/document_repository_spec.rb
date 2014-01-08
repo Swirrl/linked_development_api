@@ -17,7 +17,7 @@ describe DocumentRepository do
 
     context 'eldis' do
       describe 'short' do 
-        let(:document) { repository.get_all({type: 'eldis', detail: 'short'}, 10) }
+        let(:document) { repository.get_all({type: 'eldis', detail: 'short'}, :limit => 10) }
         
         specify { expect(document.class).to be == Array }
         specify { expect(document.size).to be  == 10 }
@@ -26,7 +26,7 @@ describe DocumentRepository do
       end
       
       describe 'full' do 
-        let(:document) { repository.get_all({type: 'eldis', detail: 'full'}, 10) }
+        let(:document) { repository.get_all({type: 'eldis', detail: 'full'}, :limit => 10) }
         
         specify { expect(document.class).to be == Array }
         specify { expect(document.size).to be  == 10 }
@@ -37,7 +37,7 @@ describe DocumentRepository do
 
     context 'r4d' do
       describe 'short' do 
-        let(:document) { repository.get_all({type: 'r4d', detail: 'short'}, 1) }
+        let(:document) { repository.get_all({type: 'r4d', detail: 'short'}, :limit => 1) }
 
         specify { expect(document.class).to be == Array }
         specify { expect(document.size).to be  == 1 }
@@ -46,7 +46,7 @@ describe DocumentRepository do
       end
 
       describe 'full' do 
-        let(:document) { repository.get_all({type: 'r4d', detail: 'full'}, 3) }
+        let(:document) { repository.get_all({type: 'r4d', detail: 'full'}, :limit => 3) }
 
         specify { expect(document.class).to be == Array }
         specify { expect(document.size).to be  == 3 }
@@ -57,7 +57,7 @@ describe DocumentRepository do
 
     context 'all' do
       describe 'short' do 
-        let(:document) { repository.get_all({type: 'all', detail: 'short'}, 10) }
+        let(:document) { repository.get_all({type: 'all', detail: 'short'}, :limit => 10) }
 
         specify { expect(document.class).to be == Array }
         specify { expect(document.size).to be  == 10 }
@@ -66,7 +66,7 @@ describe DocumentRepository do
       end
 
       describe 'full' do 
-        let(:document) { repository.get_all({type: 'all', detail: 'full'}, 5) }
+        let(:document) { repository.get_all({type: 'all', detail: 'full'}, :limit => 5) }
 
         specify { expect(document.class).to be == Array }
         specify { expect(document.size).to be  == 5 }
@@ -74,27 +74,26 @@ describe DocumentRepository do
         specify { expect(document[0]['linked_data_uri']).to match(eldis_id_pattern) }
       end
     end
-
   end
 
   describe '#total_results_of_last_query' do 
     describe 'r4d' do
       specify { 
-        repository.get_all({type: "r4d", detail: "full"}, 10)
+        repository.get_all({type: "r4d", detail: "full"}, :limit => 5)
         expect(repository.total_results_of_last_query ).to be r4d_total
       }
     end
     
     describe 'eldis' do
       specify { 
-        repository.get_all({type: "eldis", detail: "full"}, 10)
+        repository.get_all({type: "eldis", detail: "full"}, :limit => 5)
         expect(repository.total_results_of_last_query ).to be == eldis_total
       }
     end
 
     describe 'all' do 
       specify { 
-        results = repository.get_all({type: "all", detail: "full"}, 10) 
+        results = repository.get_all({type: "all", detail: "full"}, :limit => 5) 
         
         expect(repository.total_results_of_last_query).to be == (eldis_total + r4d_total)
       }

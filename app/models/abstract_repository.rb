@@ -25,11 +25,15 @@ class AbstractRepository
 
   protected
 
-  def set_common_details details, opts={}
+  def set_common_details details, opts=nil
     @type = details.fetch(:type)
     @detail = details.fetch(:detail)
     @resource_uri = details[:resource_uri]
-    raise StandardError, 'No resource_uri was supplied.' if opts[:raise_on_nil_resource_uri] && @resource_uri.nil? 
+    raise StandardError, 'No resource_uri was supplied.' if opts && opts[:raise_on_nil_resource_uri] && @resource_uri.nil? 
+    if opts
+      @limit = opts[:limit] || 10
+      @offset = opts[:offset] || 0
+    end
   end
   
   def build_base_query

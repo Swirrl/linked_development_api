@@ -166,7 +166,7 @@ describe ThemeRepository do
 
     context 'eldis' do
       describe 'short' do 
-        let(:document) { repository.get_all({type: 'eldis', detail: 'short'}, 10) }
+        let(:document) { repository.get_all({type: 'eldis', detail: 'short'}, :limit => 10) }
 
         specify { expect(document.class).to be == Array }
         specify { expect(document.size).to be  == 10 }
@@ -175,7 +175,7 @@ describe ThemeRepository do
       end
 
       describe 'full' do 
-        let(:document) { repository.get_all({type: 'eldis', detail: 'full'}, 10) }
+        let(:document) { repository.get_all({type: 'eldis', detail: 'full'}, :limit => 10) }
 
         specify { expect(document.class).to be == Array }
         specify { expect(document.size).to be  == 10 }
@@ -186,7 +186,7 @@ describe ThemeRepository do
 
     context 'r4d' do
       describe 'short' do 
-        let(:document) { repository.get_all({type: 'r4d', detail: 'short'}, 10) }
+        let(:document) { repository.get_all({type: 'r4d', detail: 'short'}, :limit => 10) }
 
         specify { expect(document.class).to be == Array }
         specify { expect(document.size).to be  == 10 }
@@ -195,7 +195,7 @@ describe ThemeRepository do
       end
 
       describe 'full' do 
-        let(:document) { repository.get_all({type: 'r4d', detail: 'full'}, 10) }
+        let(:document) { repository.get_all({type: 'r4d', detail: 'full'}, :limit => 10) }
 
         specify { expect(document.class).to be == Array }
         specify { expect(document.size).to be  == 10 }
@@ -206,7 +206,7 @@ describe ThemeRepository do
 
     context 'all' do
       describe 'short' do 
-        let(:document) { repository.get_all({type: 'all', detail: 'short'}, 10) }
+        let(:document) { repository.get_all({type: 'all', detail: 'short'}, :limit => 10) }
 
         specify { expect(document.class).to be == Array }
         specify { expect(document.size).to be  == 10 }
@@ -215,7 +215,7 @@ describe ThemeRepository do
       end
 
       describe 'full' do 
-        let(:document) { repository.get_all({type: 'all', detail: 'full'}, 10) }
+        let(:document) { repository.get_all({type: 'all', detail: 'full'}, :limit => 10) }
 
         specify { expect(document.class).to be == Array }
         specify { expect(document.size).to be  == 10 }
@@ -229,7 +229,7 @@ describe ThemeRepository do
       it 'calls both the r4d and eldis query builders' do 
         repository.should_receive(:eldis_subquery)
         repository.should_receive(:r4d_subquery)
-        repository.get_all({type: 'all', detail: 'full'}, 10)
+        repository.get_all({type: 'all', detail: 'full'}, :limit => 10)
       end
     end
   end

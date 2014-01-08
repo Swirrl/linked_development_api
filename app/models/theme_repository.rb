@@ -17,12 +17,11 @@ class ThemeRepository < AbstractRepository
     process_one_or_many_results(run_get_query).first
   end
 
-  def get_all details, limit
-    set_common_details details
-    @limit = limit
+  def get_all details, opts={}
+    set_common_details details, opts
    
-    query   = Tripod::SparqlQuery.new(build_base_query)
-    result  = Tripod::SparqlClient::Query.query(query.query, 'text/turtle')
+    #query   = Tripod::SparqlQuery.new(build_base_query)
+    result  = Tripod::SparqlClient::Query.query(build_base_query, 'text/turtle')
     graph   = RDF::Graph.new.from_ttl(result)
     
     process_one_or_many_results(graph)
