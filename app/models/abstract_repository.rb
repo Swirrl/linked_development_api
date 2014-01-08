@@ -1,22 +1,13 @@
 class AbstractRepository
-  def eldis_graph_uri
-    "http://linked-development.org/graph/eldis"
-  end
-  
-  def r4d_graph_uri
-    "http://linked-development.org/graph/r4d"
-  end
-  
   def common_prefixes
-      <<-PREFIXES
-PREFIX dcterms: <http://purl.org/dc/terms/>
-PREFIX bibo: <http://purl.org/ontology/bibo/>
-PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX fao: <http://www.fao.org/countryprofiles/geoinfo/geopolitical/resource/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
-
+      <<-PREFIXES.strip_heredoc
+      PREFIX dcterms: <http://purl.org/dc/terms/>
+      PREFIX bibo: <http://purl.org/ontology/bibo/>
+      PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+      PREFIX fao: <http://www.fao.org/countryprofiles/geoinfo/geopolitical/resource/>
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+      PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
       PREFIXES
   end
 
@@ -40,7 +31,7 @@ PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
   end
   
   def build_base_query
-    <<-SPARQL
+    <<-SPARQL.strip_heredoc
       #{common_prefixes}
 
       #{construct}
@@ -51,13 +42,15 @@ PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
   # TODO consider whether this should be here or in ThemeRepository,
   # as it's currently overriden in DocumentRepository.
   def where_clause
-    if @type == 'eldis'
-      "WHERE { #{eldis_subquery} }"
-    elsif @type == 'r4d'
-      "WHERE { #{r4d_subquery} }"
-    else # all
-      "WHERE { #{unionise(r4d_subquery, eldis_subquery)} }"
-    end
+    query_str = case @type
+                when 'eldis'
+                  eldis_subquery
+                when 'r4d'
+                  r4d_subquery
+                else 
+                  unionise(r4d_subquery, eldis_subquery)
+                end
+    whereise(query_str)
   end
 
   def maybe_limit_clause
@@ -113,4 +106,12 @@ GRAPH <http://linked-development.org/graph/#{graph_slug}> {
 SPARQL
   end
 
+  # wrap in a WHERE clause
+  def whereise query_str
+    <<-SPARQL.strip_heredoc
+    WHERE {
+       #{query_str}
+    }
+    SPARQL
+  end
 end

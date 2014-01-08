@@ -48,13 +48,7 @@ class DocumentRepository < AbstractRepository
   end
 
   def apply_graph_type_restriction query_str
-    query_pattern = if @type == 'all'
-                      query_str
-                    else
-                      # apply graph restriction
-                      "GRAPH <http://linked-development.org/graph/#{@type}> { #{query_str} }"
-                    end
-    query_pattern
+    @type == 'all' ? query_str : graphise(@type, query_str)
   end
 
   def totalise_query

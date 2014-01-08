@@ -22,12 +22,8 @@ class ThemeRepository < AbstractRepository
   def get_all details, limit
     set_common_details details
     @limit = limit
-    
-    query_string = build_base_query
-    
-    #Rails.logger.info query_string
    
-    query   = Tripod::SparqlQuery.new(query_string)
+    query   = Tripod::SparqlQuery.new(build_base_query)
     result  = Tripod::SparqlClient::Query.query(query.query, 'text/turtle')
     graph   = RDF::Graph.new.from_ttl(result)
     
