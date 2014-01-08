@@ -7,26 +7,7 @@ require 'rdf/vocab/bibo'
 class DocumentRepository < AbstractRepository
 
   def find(details)
-    set_common_details details
-
-    document_id = details.fetch(:id)
-
-    # From the original GetQueryBuilder->createQuery
-    # (This appears to be hard-coded to eldis URIs only)
-
-    # Maybe find a better implementation than the original?
-    # This seems unnecessarily coupled to the id format and
-    # will fail if we have another digits-only id format.
-    #
-    # PHP: For now we base graph selection on the ID.
-    #      ELDIS IDs start with A, whereas R4D are numerical.
-    #      Graph will already be respected by the graph query.
-    @document_uri =
-      if document_id =~ /^A/
-        "http://linked-development.org/eldis/output/#{document_id}/"
-      else
-        "http://linked-development.org/r4d/output/#{document_id}/"
-      end
+    set_common_details details, raise_error_on_nil_resource_uri: true
 
     query   = Tripod::SparqlQuery.new(build_base_query)
     result  = Tripod::SparqlClient::Query.query(query.query, 'text/turtle')
@@ -38,7 +19,7 @@ class DocumentRepository < AbstractRepository
   def get_all details, limit
     set_common_details details
     @limit = limit
-    @document_uri = nil # ask for multiple documents
+    @resource_uri = nil # ask for multiple documents
 
     query   = Tripod::SparqlQuery.new(build_base_query)
     result  = Tripod::SparqlClient::Query.query(query.query, 'text/turtle')
@@ -242,7 +223,7 @@ TOTALISE
   def construct
     <<-ENDCONSTRUCT
     CONSTRUCT {
-      #{var_or_iriref(@document_uri)} a                 bibo:Article ;
+      #{var_or_iriref(@resource_uri)} a                 bibo:Article ;
                 dcterms:title     ?title ;
                 dcterms:abstract  ?abstract ;
                 dcterms:creator   ?creator ;
@@ -258,18 +239,18 @@ TOTALISE
                       dcterms:identifier  ?subjectParentID .
 
       # Coverage
-      #{var_or_iriref(@document_uri)} dcterms:coverage    ?coverage .
+      #{var_or_iriref(@resource_uri)} dcterms:coverage    ?coverage .
       ?coverage fao:codeISO2        ?coverageISO ;
                 fao:codeUN          ?coverageUN ;
                 dcterms:identifier  ?coverageID ;
                 rdfs:label          ?coverageTitle.
 
-      #{var_or_iriref(@document_uri)} dcterms:language    ?language ;
+      #{var_or_iriref(@resource_uri)} dcterms:language    ?language ;
                 dcterms:identifier  ?identifier ;
                 rdfs:seeAlso        ?document ;
                 dcterms:date        ?date .
 
-      #{var_or_iriref(@document_uri)} dcterms:publisher     ?publisher .
+      #{var_or_iriref(@resource_uri)} dcterms:publisher     ?publisher .
       ?publisher  foaf:name           ?publisherName ;
                   dcterms:identifier  ?publisherID ;
                   vcard:hasAddress    ?publisherAddress.
@@ -282,7 +263,7 @@ ENDCONSTRUCT
   # the primary article selection query.  Everything else is optional.
   def primary_selection_query
     graph_pattern = <<-GP
-      #{var_or_iriref(@document_uri)} a bibo:Article ;
+      #{var_or_iriref(@resource_uri)} a bibo:Article ;
                 dcterms:title ?title .
 GP
     
@@ -301,22 +282,22 @@ PRIMARY
     
       #{primary_selection_query}  
     
-      OPTIONAL { #{var_or_iriref(@document_uri)} dcterms:abstract ?abstract }
+      OPTIONAL { #{var_or_iriref(@resource_uri)} dcterms:abstract ?abstract }
 
       # Creators
       # Handle cases where Creator is directly attached (Eldis), or through a blank node (R4D)
       OPTIONAL {
         {
-          #{var_or_iriref(@document_uri)} dcterms:creator ?creator .
+          #{var_or_iriref(@resource_uri)} dcterms:creator ?creator .
         } UNION {
-          #{var_or_iriref(@document_uri)} dcterms:creator/foaf:name ?creator .
+          #{var_or_iriref(@resource_uri)} dcterms:creator/foaf:name ?creator .
         }
         FILTER(isLiteral(?creator))
       }
 
       # Subjects
       OPTIONAL {
-        #{var_or_iriref(@document_uri)} dcterms:subject ?subject .
+        #{var_or_iriref(@resource_uri)} dcterms:subject ?subject .
         ?subject rdfs:label ?subjectTitle .
         OPTIONAL {
             ?subject dcterms:identifier ?subjectID .
@@ -334,7 +315,7 @@ PRIMARY
 
       # Coverage
       OPTIONAL {
-        #{var_or_iriref(@document_uri)} dcterms:coverage ?coverage.
+        #{var_or_iriref(@resource_uri)} dcterms:coverage ?coverage.
         # Handle for different ways in which coverage may be labelled.
         {
           ?coverage rdfs:label ?coverageTitle
@@ -350,21 +331,21 @@ PRIMARY
       }
 
       # Language
-      OPTIONAL { #{var_or_iriref(@document_uri)} dcterms:language ?language }
+      OPTIONAL { #{var_or_iriref(@resource_uri)} dcterms:language ?language }
       # Identifiers
-      OPTIONAL { #{var_or_iriref(@document_uri)} dcterms:identifier ?identifier }
+      OPTIONAL { #{var_or_iriref(@resource_uri)} dcterms:identifier ?identifier }
       # SeeAlso
-      OPTIONAL { #{var_or_iriref(@document_uri)} rdfs:seeAlso ?document }
+      OPTIONAL { #{var_or_iriref(@resource_uri)} rdfs:seeAlso ?document }
       # Date
-      OPTIONAL { #{var_or_iriref(@document_uri)} dcterms:date ?date }
+      OPTIONAL { #{var_or_iriref(@resource_uri)} dcterms:date ?date }
       # Publisher Information
       OPTIONAL {
-        #{var_or_iriref(@document_uri)} dcterms:publisher ?publisher .
+        #{var_or_iriref(@resource_uri)} dcterms:publisher ?publisher .
         OPTIONAL { ?publisher foaf:name ?publisherName }
       }
       # URI to the document
       OPTIONAL {
-        #{var_or_iriref(@document_uri)} bibo:uri ?uri
+        #{var_or_iriref(@resource_uri)} bibo:uri ?uri
       }
     }
   SPARQL

@@ -14,45 +14,33 @@ class ThemeService < AbstractService
   end
 
   def get details
-    # The original DefaultQueryBuilder#createQuery uses FROM clauses
-    # to restrict the results, which we're not re-implementing here yet
-    # Silly hash re-structuring on purpose for now
-    
-    type = details.fetch(:type)
-    doc_id = details.fetch(:id)
-    detail = details[:detail]
+    set_instance_vars details
+    validate
 
-    raise LinkedDevelopmentError, 'Detail must be either full, short or unspecified (in which case it defaults to short).' unless detail_valid? detail 
-    raise InvalidDocumentType unless graph_valid? type
-    
-    resource_uri = theme_uri(doc_id)
+    merge_uri_with! details
 
-    details.merge! :resource_uri => resource_uri
-
-    result = if type == 'eldis' && is_eldis_id?(doc_id)
+    result = if @type == 'eldis' && is_eldis_id?(@resource_id)
                @repository.get_eldis details
-             elsif type == 'r4d' && is_agrovoc_id?(doc_id) 
+             elsif @type == 'r4d' && is_agrovoc_id?(@resource_id) 
                @repository.get_r4d details
-             elsif type == 'all'
-                 if is_dbpedia_id?(doc_id) || is_agrovoc_id?(doc_id)
+             elsif @type == 'all'
+                 if is_dbpedia_id?(@resource_id) || is_agrovoc_id?(@resource_id)
                    @repository.get_r4d details 
-                 elsif is_eldis_id?(doc_id)
+                 elsif is_eldis_id?(@resource_id)
                    @repository.get_eldis details 
                  else
                    raise LinkedDevelopmentError, "Unexpected :id format."
                  end
              else
-               raise LinkedDevelopmentError, "Invalid :id format (#{doc_id}) with graph type #{type}"
+               raise LinkedDevelopmentError, "Invalid :id format (#{@resource_id}) with graph @type #{@type}"
              end
-
-    raise DocumentNotFound, "No resource found with id #{doc_id} not found" if result.nil?
 
     wrap_result result
   end
 
   def get_all details, limit=nil
-    type = details.fetch(:type)
-    raise InvalidDocumentType unless graph_valid? type
+    set_instance_vars details
+    validate
 
     results = @repository.get_all details, parse_limit(limit)
 
@@ -62,14 +50,25 @@ class ThemeService < AbstractService
   private
 
   # Generate a resource URI for the theme, note this is different from a 'metadata_url'
-  def theme_uri doc_id
-    if is_eldis_id? doc_id
-      "http://linked-development.org/eldis/themes/#{doc_id}/"
-    elsif is_agrovoc_id? doc_id
-      "http://aims.fao.org/aos/agrovoc/#{doc_id}"
-    else is_dbpedia_id? doc_id
-      "http://dbpedia.org/resource/#{doc_id}"
+  def convert_id_to_uri res_id
+    if is_eldis_id? res_id
+      "http://linked-development.org/eldis/themes/#{res_id}/"
+    elsif is_agrovoc_id? res_id
+      "http://aims.fao.org/aos/agrovoc/#{res_id}"
+    else is_dbpedia_id? res_id
+      "http://dbpedia.org/resource/#{res_id}"
     end
   end
 
+  def is_eldis_id? identifier
+    identifier =~ /^C\d{1,}$/
+  end
+
+  def is_agrovoc_id? identifier
+    identifier =~ /^c_\d{1,}$/
+  end
+
+  def is_dbpedia_id? identifier
+    !is_eldis_id?(identifier) && !is_agrovoc_id?(identifier)
+  end
 end

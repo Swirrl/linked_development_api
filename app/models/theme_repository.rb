@@ -4,17 +4,15 @@ require 'rdf/vocab/bibo'
 class ThemeRepository < AbstractRepository
 
   def get_eldis details
-    set_common_details details.merge :type => 'eldis'
+    set_common_details details.merge(:type => 'eldis'), raise_error_on_nil_resource_uri: true
     @limit = 1
-    @theme_uri = details.fetch(:resource_uri)
 
     process_one_or_many_results(run_get_query).first
   end
 
   def get_r4d details
-    set_common_details details.merge :type => 'r4d'
+    set_common_details details.merge(:type => 'r4d'), raise_error_on_nil_resource_uri: true
     @limit = 1
-    @theme_uri = details.fetch(:resource_uri)
 
     process_one_or_many_results(run_get_query).first
   end
@@ -37,7 +35,7 @@ class ThemeRepository < AbstractRepository
     #{common_prefixes}
 
     CONSTRUCT {
-      #{var_or_iriref(@theme_uri)}
+      #{var_or_iriref(@resource_uri)}
         rdfs:label ?label ; 
         dcterms:identifier ?parent_id ;
         skos:narrower ?child_concept .
@@ -58,7 +56,7 @@ class ThemeRepository < AbstractRepository
       }
 
       OPTIONAL { 
-        #{var_or_iriref(@theme_uri)} skos:narrower ?child_concept .
+        #{var_or_iriref(@resource_uri)} skos:narrower ?child_concept .
 
         ?child_concept 
           dcterms:identifier ?child_id ;
@@ -71,7 +69,7 @@ class ThemeRepository < AbstractRepository
   def primary_eldis_select
     <<-SPARQL.strip_heredoc
     SELECT * WHERE {
-      #{var_or_iriref(@theme_uri)} 
+      #{var_or_iriref(@resource_uri)} 
          a skos:Concept ;
          skos:inScheme <http://linked-development.org/eldis/themes/C2/> ;
          rdfs:label ?label ;
@@ -88,7 +86,7 @@ class ThemeRepository < AbstractRepository
       }
 
       OPTIONAL {
-        #{var_or_iriref(@theme_uri)} skos:narrower ?child_concept .
+        #{var_or_iriref(@resource_uri)} skos:narrower ?child_concept .
         OPTIONAL { ?child_concept skos:prefLabel ?child_label . }
         OPTIONAL { ?child_concept skos:preLabel ?child_label . }
         BIND(replace(str(?child_concept), "http://aims.fao.org/aos/agrovoc/", '') AS ?child_id) .
@@ -100,12 +98,12 @@ class ThemeRepository < AbstractRepository
   def primary_r4d_select
     <<-SPARQL.strip_heredoc
          SELECT * WHERE {
-            #{var_or_iriref(@theme_uri)} a skos:Concept .
+            #{var_or_iriref(@resource_uri)} a skos:Concept .
    
-            BIND(replace(str(#{var_or_iriref(@theme_uri)}), "(http://aims.fao.org/aos/agrovoc/|http://dbpedia.org/resource/)", '') AS ?parent_id)
+            BIND(replace(str(#{var_or_iriref(@resource_uri)}), "(http://aims.fao.org/aos/agrovoc/|http://dbpedia.org/resource/)", '') AS ?parent_id)
       
-            OPTIONAL { #{var_or_iriref(@theme_uri)} skos:prefLabel ?label . }
-            OPTIONAL { #{var_or_iriref(@theme_uri)} skos:preLabel ?label . }
+            OPTIONAL { #{var_or_iriref(@resource_uri)} skos:prefLabel ?label . }
+            OPTIONAL { #{var_or_iriref(@resource_uri)} skos:preLabel ?label . }
          }
        SPARQL
   end
@@ -121,7 +119,7 @@ class ThemeRepository < AbstractRepository
   end
 
   def get_solutions_from_graph graph
-    theme_res = @theme_uri ? RDF::URI.new(@theme_uri) : :theme_uri
+    theme_res = @resource_uri ? RDF::URI.new(@resource_uri) : :theme_uri
 
     theme_solutions = RDF::Query.execute(graph) do |q| 
       q.pattern [theme_res, RDF::RDFS.label,    :label]
@@ -134,7 +132,7 @@ class ThemeRepository < AbstractRepository
   def process_each_result graph, current_theme
       theme = { }
 
-      parent_uri = @theme_uri ? RDF::URI.new(@theme_uri) : current_theme.theme_uri
+      parent_uri = @resource_uri ? RDF::URI.new(@resource_uri) : current_theme.theme_uri
       theme['linked_data_uri'] = parent_uri.to_s
       theme['object_id'] = current_theme._object_id.value
       theme['object_type'] = 'theme'
@@ -177,7 +175,7 @@ class ThemeRepository < AbstractRepository
     <<-SPARQL.strip_heredoc
     #{common_prefixes}
 
-    SELECT (COUNT(#{var_or_iriref(@theme_uri)}) AS ?total) WHERE { 
+    SELECT (COUNT(#{var_or_iriref(@resource_uri)}) AS ?total) WHERE { 
        #{query_pattern}
     }
     SPARQL
