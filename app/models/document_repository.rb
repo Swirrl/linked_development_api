@@ -9,8 +9,7 @@ class DocumentRepository < AbstractRepository
   def find(details)
     set_common_details details, raise_error_on_nil_resource_uri: true
 
-    query   = Tripod::SparqlQuery.new(build_base_query)
-    result  = Tripod::SparqlClient::Query.query(query.query, 'text/turtle')
+    result  = Tripod::SparqlClient::Query.query(build_base_query, 'text/turtle')
     graph   = RDF::Graph.new.from_ttl(result)
 
     process_one_or_many_results(graph).first
@@ -18,9 +17,9 @@ class DocumentRepository < AbstractRepository
 
   def get_all details, opts={}
     set_common_details details, opts
-    @resource_uri = nil # ask for multiple documents
-
-    #query   = Tripod::SparqlQuery.new(build_base_query)
+    
+    Rails.logger.info build_base_query
+    
     result  = Tripod::SparqlClient::Query.query(build_base_query, 'text/turtle')
     graph   = RDF::Graph.new.from_ttl(result)
 
@@ -28,34 +27,40 @@ class DocumentRepository < AbstractRepository
   end
 
   def apply_graph_type_restriction query_str
-    @type == 'all' ? query_str : graphise(@type, query_str)
+    @type == 'all' ? unionise(graphise('eldis', query_str), 
+                              graphise('r4d', query_str)) 
+                   : graphise(@type, query_str)
   end
 
   def totalise_query
-    base_query_pattern = '?articles a bibo:Article .'
+    base_query_pattern = <<-SPARQL.strip_heredoc
+          ?articles a bibo:Article ;
+            dcterms:title ?title .
+    SPARQL
     
     query_pattern = apply_graph_type_restriction(base_query_pattern)
 
-    <<-TOTALISE
-#{common_prefixes}
-SELECT (COUNT(?articles) AS ?total) WHERE {
-      #{query_pattern}
-}
-TOTALISE
+    <<-TOTALISE.strip_heredoc
+      #{common_prefixes}
+      SELECT (COUNT(?articles) AS ?total) WHERE {
+          #{query_pattern}
+      }
+    TOTALISE
   end
 
   private
 
   def get_solutions_from_graph graph
-    document_solutions = graph.query(
-      RDF::Query.new do
-        pattern [:document, RDF.type,           RDF::URI.new("http://purl.org/ontology/bibo/Article")]
-        pattern [:document, RDF::DC.title,      :title]
-        pattern [:document, RDF::DC.identifier, :_object_id] # :object_id is a reserved method name :-)
-        pattern [:document, RDF::DC.date,       :publication_date]
-        pattern [:document, RDF::RDFS.seeAlso,  :website_url], optional: true
-      end
-    )
+    # don't offset here as this is just a subset of the results from
+    # the server
+    document_solutions = RDF::Query.execute(graph) do |q|
+      q.pattern [:document, RDF.type,           RDF::URI.new("http://purl.org/ontology/bibo/Article")]
+      q.pattern [:document, RDF::DC.title,      :title]
+      q.pattern [:document, RDF::DC.identifier, :_object_id] # :object_id is a reserved method name :-)
+      q.pattern [:document, RDF::DC.date,       :publication_date]
+      q.pattern [:document, RDF::RDFS.seeAlso,  :website_url], optional: true
+    end.limit(@limit)
+
     document_solutions
   end
   
@@ -261,26 +266,26 @@ ENDCONSTRUCT
 
   # the primary article selection query.  Everything else is optional.
   def primary_selection_query
-    graph_pattern = <<-GP
+    graph_pattern = <<-GP.strip_heredoc
       #{var_or_iriref(@resource_uri)} a bibo:Article ;
                 dcterms:title ?title .
 GP
     
-    <<-PRIMARY
-      { 
-          SELECT * WHERE {
+    <<-PRIMARY.strip_heredoc
+          SELECT DISTINCT * WHERE {
             #{apply_graph_type_restriction(graph_pattern)}
-          } #{maybe_limit_clause}
-      }
+          }
 PRIMARY
   end
 
   def where_clause
     <<-SPARQL
     WHERE {
-    
-      #{primary_selection_query}  
-    
+      {    
+          #{primary_selection_query}  
+          #{maybe_limit_clause} #{maybe_offset_clause}
+      }
+
       OPTIONAL { #{var_or_iriref(@resource_uri)} dcterms:abstract ?abstract }
 
       # Creators

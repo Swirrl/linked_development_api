@@ -59,7 +59,7 @@ describe DocumentService do
       specify { expect(document["urls"]).to be == [ ] }
     end
 
-    include_examples 'example documents', [[:eldis, :get, :document, 'A64559']] 
+    include_examples 'example documents', [:eldis, :get, :document, 'A64559']
   end
 
   context "Multiple creators (ELDIS document A64840)" do

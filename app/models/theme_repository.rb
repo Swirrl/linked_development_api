@@ -19,8 +19,7 @@ class ThemeRepository < AbstractRepository
 
   def get_all details, opts={}
     set_common_details details, opts
-   
-    #query   = Tripod::SparqlQuery.new(build_base_query)
+
     result  = Tripod::SparqlClient::Query.query(build_base_query, 'text/turtle')
     graph   = RDF::Graph.new.from_ttl(result)
     
@@ -31,81 +30,139 @@ class ThemeRepository < AbstractRepository
   
   def construct
     <<-ENDCONSTRUCT.strip_heredoc
-    #{common_prefixes}
-
     CONSTRUCT {
-      #{var_or_iriref(@resource_uri)}
-        rdfs:label ?label ; 
-        dcterms:identifier ?parent_id ;
-        skos:narrower ?child_concept .
+        #{var_or_iriref(@resource_uri)}
+            rdfs:label ?label ; 
+            dcterms:identifier ?parent_id ;
+            skos:narrower ?child_concept .
       
-      ?child_concept 
-        dcterms:identifier ?child_id ;
-        rdfs:label ?child_label ; 
-        ?child_predicate ?child_object .
+        ?child_concept 
+            dcterms:identifier ?child_id ;
+            rdfs:label ?child_label ; 
+            ?child_predicate ?child_object .
     } 
     ENDCONSTRUCT
   end
 
-  def eldis_subquery
+  def where_clause
+    child_subqueries = case @type
+                         when 'eldis' ; eldis_child_subquery
+                       when 'r4d' ; r4d_child_subquery
+                       else 
+                         <<-SPARQL.strip_heredoc 
+                             #{eldis_child_subquery} 
+                             #{r4d_child_subquery}
+                         SPARQL
+                       end
     <<-SPARQL.strip_heredoc
+       WHERE {
+           {
+               #{primary_subquery} #{maybe_limit_clause} #{maybe_offset_clause}
+           } 
+           #{child_subqueries}
+       }
+    SPARQL
+  end
+
+  def primary_subquery
+    primary_clause = case @type
+                       when 'eldis' ; eldis_parent_subquery
+                       when 'r4d' ; r4d_parent_subquery
+                       else unionise(eldis_parent_subquery, r4d_parent_subquery) # all
+                     end
+    <<-SPARQL.strip_heredoc
+        SELECT * WHERE {
+           #{primary_clause}
+        }
+    SPARQL
+  end
+
+  def eldis_parent_subquery
+    <<-SPARQL.strip_heredoc
+    
     GRAPH <http://linked-development.org/graph/eldis> {
-      { 
-          #{primary_eldis_select} #{maybe_limit_clause}
-      }
-
-      OPTIONAL { 
-        #{var_or_iriref(@resource_uri)} skos:narrower ?child_concept .
-
-        ?child_concept 
-          dcterms:identifier ?child_id ;
-          ?child_predicate ?child_object .
-      }
+        SELECT * WHERE {
+            #{var_or_iriref(@resource_uri)} 
+                a skos:Concept ;
+                skos:inScheme <http://linked-development.org/eldis/themes/C2/> ;
+                rdfs:label ?label ;
+                dcterms:identifier ?parent_id .
+        }
     }
     SPARQL
   end
 
-  def primary_eldis_select
+  def eldis_child_subquery
     <<-SPARQL.strip_heredoc
-    SELECT * WHERE {
-      #{var_or_iriref(@resource_uri)} 
-         a skos:Concept ;
-         skos:inScheme <http://linked-development.org/eldis/themes/C2/> ;
-         rdfs:label ?label ;
-         dcterms:identifier ?parent_id .
-    }
-    SPARQL
-  end
-
-  def r4d_subquery
-    <<-SPARQL.strip_heredoc
-    GRAPH <http://linked-development.org/graph/r4d> {
-      {
-         #{primary_r4d_select} #{maybe_limit_clause}
-      }
-
       OPTIONAL {
-        #{var_or_iriref(@resource_uri)} skos:narrower ?child_concept .
-        OPTIONAL { ?child_concept skos:prefLabel ?child_label . }
-        OPTIONAL { ?child_concept skos:preLabel ?child_label . }
-        BIND(replace(str(?child_concept), "http://aims.fao.org/aos/agrovoc/", '') AS ?child_id) .
+          GRAPH <http://linked-development.org/graph/eldis> {
+              #{var_or_iriref(@resource_uri)} skos:narrower ?child_concept .
+        
+              ?child_concept 
+                  dcterms:identifier ?child_id ;
+                  ?child_predicate ?child_object .
+          }
       }
-    }
     SPARQL
   end
 
-  def primary_r4d_select
+  def r4d_child_subquery
+    <<-SPARQL.strip_heredoc
+      OPTIONAL {
+          GRAPH <http://linked-development.org/graph/r4d> {
+              #{var_or_iriref(@resource_uri)} skos:narrower ?child_concept .
+            
+              OPTIONAL { ?child_concept skos:prefLabel ?child_label . }
+              OPTIONAL { ?child_concept skos:preLabel ?child_label . }
+              BIND(replace(str(?child_concept), "http://aims.fao.org/aos/agrovoc/", '') AS ?child_id) .
+          }
+      }
+    SPARQL
+  end
+
+  # def primary_eldis_select
+  #   <<-SPARQL.strip_heredoc
+    #   SELECT * WHERE {
+  #     #{var_or_iriref(@resource_uri)} 
+  #        a skos:Concept ;
+  #        skos:inScheme <http://linked-development.org/eldis/themes/C2/> ;
+  #        rdfs:label ?label ;
+  #        dcterms:identifier ?parent_id .
+  #   }
+  #   SPARQL
+  # end
+
+  def r4d_parent_subquery
     <<-SPARQL.strip_heredoc
          SELECT * WHERE {
-            #{var_or_iriref(@resource_uri)} a skos:Concept .
-   
-            BIND(replace(str(#{var_or_iriref(@resource_uri)}), "(http://aims.fao.org/aos/agrovoc/|http://dbpedia.org/resource/)", '') AS ?parent_id)
-      
-            OPTIONAL { #{var_or_iriref(@resource_uri)} skos:prefLabel ?label . }
-            OPTIONAL { #{var_or_iriref(@resource_uri)} skos:preLabel ?label . }
+             GRAPH <http://linked-development.org/graph/r4d> {
+                 #{var_or_iriref(@resource_uri)} a skos:Concept .
+       
+                 BIND(replace(str(#{var_or_iriref(@resource_uri)}), "(http://aims.fao.org/aos/agrovoc/|http://dbpedia.org/resource/)", '') AS ?parent_id)
+          
+                 OPTIONAL { #{var_or_iriref(@resource_uri)} skos:prefLabel ?label . }
+                 OPTIONAL { #{var_or_iriref(@resource_uri)} skos:preLabel ?label . }
+             }
          }
        SPARQL
   end
+
+  # def r4d_parent_subquery
+  #   <<-SPARQL.strip_heredoc
+  #   GRAPH <http://linked-development.org/graph/r4d> {
+  #     {
+  #        #{primary_r4d_select} #{maybe_limit_clause} #{maybe_offset_clause}
+  #     }
+
+  #     OPTIONAL {
+  #       #{var_or_iriref(@resource_uri)} skos:narrower ?child_concept .
+  #       OPTIONAL { ?child_concept skos:prefLabel ?child_label . }
+  #       OPTIONAL { ?child_concept skos:preLabel ?child_label . }
+  #       BIND(replace(str(?child_concept), "http://aims.fao.org/aos/agrovoc/", '') AS ?child_id) .
+  #     }
+  #   }
+  #   SPARQL
+  # end
 
   def run_get_query
     query_string = build_base_query
@@ -118,8 +175,10 @@ class ThemeRepository < AbstractRepository
   end
 
   def get_solutions_from_graph graph
+
     theme_res = @resource_uri ? RDF::URI.new(@resource_uri) : :theme_uri
 
+    # don't offset here as this is just a subset of the results from the server
     theme_solutions = RDF::Query.execute(graph) do |q| 
       q.pattern [theme_res, RDF::RDFS.label,    :label]
       q.pattern [theme_res, RDF::DC.identifier, :_object_id]
@@ -163,19 +222,13 @@ class ThemeRepository < AbstractRepository
   end
 
   def totalise_query
-    query_pattern = if @type == 'r4d'
-                      graphise('r4d', primary_r4d_select)
-                    elsif @type == 'eldis'
-                      graphise('eldis', primary_eldis_select)
-                    else # all
-                      unionise(graphise('eldis', primary_eldis_select), graphise('r4d', primary_r4d_select))
-                    end
-    
     <<-SPARQL.strip_heredoc
     #{common_prefixes}
 
-    SELECT (COUNT(#{var_or_iriref(@resource_uri)}) AS ?total) WHERE { 
-       #{query_pattern}
+    SELECT (COUNT(?resource) AS ?total) WHERE { 
+       {
+           #{primary_subquery}
+       }
     }
     SPARQL
   end

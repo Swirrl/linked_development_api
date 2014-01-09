@@ -17,5 +17,16 @@ RSpec.configure do |config|
   # rspec-rails.
   config.infer_base_class_for_anonymous_controllers = false
 
+  config.extend SampleJson
   config.include SampleJson
+end
+
+module SpecValues
+  TOTAL_R4D_DOCUMENTS = 35182
+  TOTAL_ELDIS_DOCUMENTS = 37515 
+  TOTAL_DOCUMENTS = TOTAL_R4D_DOCUMENTS + TOTAL_ELDIS_DOCUMENTS
+
+  TOTAL_R4D_THEMES = 34835
+  TOTAL_ELDIS_THEMES = 1112
+  TOTAL_THEMES = TOTAL_R4D_THEMES + TOTAL_ELDIS_THEMES
 end

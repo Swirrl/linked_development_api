@@ -1,6 +1,9 @@
 require 'spec_helper'
 
 describe ThemeRepository do
+  
+  let(:theme_uri_regex) { /http:\/\/linked-development\.org\/eldis\/themes\/C[0-9]+\// }
+  let(:dbpedia_regex) { /http:\/\/dbpedia\.org\// }
 
   subject(:repository) { ThemeRepository.new }
 
@@ -171,7 +174,7 @@ describe ThemeRepository do
         specify { expect(document.class).to be == Array }
         specify { expect(document.size).to be  == 10 }
         
-        specify { expect(document[0]['linked_data_uri']).to match(/http:\/\/linked-development\.org\/eldis\/themes\/C[0-9]+\//) }
+        specify { expect(document[0]['linked_data_uri']).to match(theme_uri_regex) }
       end
 
       describe 'full' do 
@@ -180,7 +183,7 @@ describe ThemeRepository do
         specify { expect(document.class).to be == Array }
         specify { expect(document.size).to be  == 10 }
         
-        specify { expect(document[0]['linked_data_uri']).to match(/http:\/\/linked-development\.org\/eldis\/themes\/C[0-9]+\//) }
+        specify { expect(document[0]['linked_data_uri']).to match(theme_uri_regex) }
       end
     end
 
@@ -191,7 +194,7 @@ describe ThemeRepository do
         specify { expect(document.class).to be == Array }
         specify { expect(document.size).to be  == 10 }
         
-        specify { expect(document[0]['linked_data_uri']).to match(/http:\/\/dbpedia\.org\//) }
+        specify { expect(document[0]['linked_data_uri']).to match(dbpedia_regex) }
       end
 
       describe 'full' do 
@@ -200,35 +203,34 @@ describe ThemeRepository do
         specify { expect(document.class).to be == Array }
         specify { expect(document.size).to be  == 10 }
         
-        specify { expect(document[0]['linked_data_uri']).to match(/http:\/\/dbpedia\.org\//) }
+        specify { expect(document[0]['linked_data_uri']).to match(dbpedia_regex) }
       end
     end
 
     context 'all' do
-      describe 'short' do 
-        let(:document) { repository.get_all({type: 'all', detail: 'short'}, :limit => 10) }
-
-        specify { expect(document.class).to be == Array }
-        specify { expect(document.size).to be  == 10 }
-        
-        specify { expect(document[0]['linked_data_uri']).to match(/http:\/\/dbpedia\.org\//) }
+      # use the offset parameter to test that the results contain both
+      # eldis & r4d documents.
+      #
+      # NOTE: these specs are brittle regarding the order results are
+      # returned in.
+      describe 'contains eldis documents' do 
+        let(:document) { repository.get_all({type: 'all', detail: 'short'}, :limit => 1, :offset => SpecValues::TOTAL_ELDIS_THEMES - 1) }
+      
+        specify { expect(document[0]['linked_data_uri']).to match(theme_uri_regex) }
       end
 
-      describe 'full' do 
-        let(:document) { repository.get_all({type: 'all', detail: 'full'}, :limit => 10) }
+      describe 'contains r4d documents' do 
+        let(:document) { repository.get_all({type: 'all', detail: 'full'}, :limit => 1, :offset => SpecValues::TOTAL_ELDIS_THEMES) }
 
-        specify { expect(document.class).to be == Array }
-        specify { expect(document.size).to be  == 10 }
-        
-        specify { expect(document[0]['linked_data_uri']).to match(/http:\/\/dbpedia\.org\//) }
+        specify { expect(document[0]['linked_data_uri']).to match(dbpedia_regex) }
       end
 
       # NOTE as we can't easily test that all the results are
       # returned, at least test that we call both of the query clause
       # builders for eldis/r4d.
       it 'calls both the r4d and eldis query builders' do 
-        repository.should_receive(:eldis_subquery)
-        repository.should_receive(:r4d_subquery)
+        repository.should_receive(:eldis_parent_subquery)
+        repository.should_receive(:r4d_parent_subquery)
         repository.get_all({type: 'all', detail: 'full'}, :limit => 10)
       end
     end

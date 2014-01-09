@@ -1,14 +1,16 @@
 class AbstractService
   protected
 
-  def set_instance_vars details
+  def set_instance_vars details, opts=nil
     @type = details.fetch(:type)
     @detail = details[:detail]
     @resource_id = details[:id] # allow nil
-  end
 
-  def parse_limit i
-    i == nil ? 10 : Integer(i)
+    if opts.present?
+      @offset = (opts[:offset] || 0).to_i
+    end
+    
+    Rails.logger.info "set offset to #{@offset} #{details.inspect}"
   end
 
   def graph_valid? 
@@ -16,7 +18,7 @@ class AbstractService
   end
 
   def detail_valid?
-  ['full', 'short', nil].include? @detail
+    ['full', 'short', nil].include? @detail
   end
 
   def wrap_result result
@@ -41,14 +43,14 @@ class AbstractService
       'results' => results,
         "metadata" => {
                        "num_results"   => @repository.total_results_of_last_query,
-                       "start_offset"  => 0
+                       "start_offset"  => @offset
                       }
     }
   end
 
   def validate
     raise LinkedDevelopmentError, 'Detail must be either full, short or unspecified (in which case it defaults to short).' unless detail_valid?
-    raise InvalidDocumentType unless graph_valid?
+    raise InvalidDocumentType, "Graph #{@type} is not valid." unless graph_valid?
   end
 
 end

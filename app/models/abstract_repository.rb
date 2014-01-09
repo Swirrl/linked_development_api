@@ -26,14 +26,13 @@ class AbstractRepository
   protected
 
   def set_common_details details, opts=nil
+    raise StandardError, "Opts must be an options Hash or nil not #{opts.class}" unless (opts.class == NilClass || opts.class == Hash)
     @type = details.fetch(:type)
     @detail = details.fetch(:detail)
     @resource_uri = details[:resource_uri]
-    raise StandardError, 'No resource_uri was supplied.' if opts && opts[:raise_on_nil_resource_uri] && @resource_uri.nil? 
-    if opts
-      @limit = opts[:limit] || 10
-      @offset = opts[:offset] || 0
-    end
+    raise StandardError, 'No resource_uri was supplied.' if opts.present? && opts[:raise_on_nil_resource_uri] && @resource_uri.nil? 
+    @limit = parse_limit opts
+    @offset = parse_offset opts
   end
   
   def build_base_query
@@ -48,19 +47,15 @@ class AbstractRepository
   # TODO consider whether this should be here or in ThemeRepository,
   # as it's currently overriden in DocumentRepository.
   def where_clause
-    query_str = case @type
-                when 'eldis'
-                  eldis_subquery
-                when 'r4d'
-                  r4d_subquery
-                else 
-                  unionise(r4d_subquery, eldis_subquery)
-                end
-    whereise(query_str)
+    raise StandardError, 'Define #where_clause in subclass'
   end
 
   def maybe_limit_clause
     @limit.present? ? " LIMIT #{@limit}" : ''
+  end
+
+  def maybe_offset_clause
+    @limit.present? && @offset.present? ? " OFFSET #{@offset}" : ''
   end
 
   # Generates a string that conforms to a VarOrIRIref in the SPARQL
@@ -120,4 +115,13 @@ SPARQL
     }
     SPARQL
   end
+
+  def parse_limit opts
+    (opts == nil || opts[:limit] == nil) ? 10 : Integer(opts[:limit])
+  end
+
+  def parse_offset opts
+    (opts == nil || opts[:offset] == nil) ? 0 : Integer(opts[:offset])
+  end
+
 end

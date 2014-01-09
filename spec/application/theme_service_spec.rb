@@ -4,6 +4,10 @@ describe ThemeService do
   let(:service) { ThemeService.build }
   let(:dummy_document) { {} }
 
+  # The total number of each document type in the test dataset.
+  let(:r4d_total) { SpecValues::TOTAL_R4D_THEMES }
+  let(:eldis_total) { SpecValues::TOTAL_ELDIS_THEMES }
+
   context "#get" do 
     describe 'raises error' do 
       it 'InvalidDocumentType when type is not one of eldis, r4d, or all' do 
@@ -77,23 +81,23 @@ describe ThemeService do
   describe 'integration specs' do
     context 'all' do 
       context "id: C782 (eldis)" do
-        include_examples 'example documents', [[:all, :get, :theme, 'C782'], 'eldis_get_theme_C782'] # equivalent to eldis query
+        include_examples 'example documents', [:all, :get, :theme, 'C782', {filename: 'eldis_get_theme_C782'}] # equivalent to eldis query
       end
 
       context "knowledge_sharing (r4d/dbpedia)" do
-        include_examples 'example documents', [[:all, :get, :theme, 'knowledge_sharing'], "r4d_get_theme_knowledge_sharing"] # equivalent to r4d query
+        include_examples 'example documents', [:all, :get, :theme, 'knowledge_sharing', {filename: "r4d_get_theme_knowledge_sharing"}] # equivalent to r4d query
       end
     end
 
     context 'eldis' do
       context "id: C782" do
-        include_examples 'example documents', [[:eldis, :get, :theme, 'C782']]
+        include_examples 'example documents', [:eldis, :get, :theme, 'C782']
       end
     end
 
     context 'r4d' do
       context 'id: c_10176' do 
-        include_examples 'example documents', [[:r4d, :get, :theme, 'c_10176']]
+        include_examples 'example documents', [:r4d, :get, :theme, 'c_10176']
       end
     end
   end
@@ -108,26 +112,26 @@ describe ThemeService do
     end
 
     context 'eldis' do 
-      include_examples 'example documents', [[:eldis, :get_all, :theme], 'eldis_get_all_theme']
+      include_examples 'example documents', [:eldis, :get_all, :theme, {:limit => 10, :offset => 0}, {:filename => 'eldis_get_all_theme'}]
     end
     
     context 'r4d' do
-      include_examples 'example documents', [[:r4d, :get_all, :theme], 'r4d_get_all_theme']
+      include_examples 'example documents', [:r4d, :get_all, :theme, {:limit => 10, :offset => 0}, {:filename => 'r4d_get_all_theme'}]
     end
     
     context 'all' do 
-      # context 'short' do 
-      #   let(:response) { service.get_all(type: 'eldis', detail: 'short') }
-      #
-      #   let(:json_output) { response.to_json }
-      #   example "matches example document" do
-      #     pending 'TODO'
-      #   
-      #     expect(JSON.parse(json_output)).to be == sample_json("eldis_get_all_theme_short.json")
-      #   end
-      # end
-      #
-      # context 'full'
+      context 'short' do 
+        let(:response) { service.get_all(type: 'eldis', detail: 'short') }
+      
+        let(:json_output) { response.to_json }
+        example "matches example document" do
+          pending 'TODO'
+        
+          expect(JSON.parse(json_output)).to be == sample_json("eldis_get_all_theme_short.json")
+        end
+      end
+      
+      context 'full'
     end
   end
 end

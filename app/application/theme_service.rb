@@ -38,11 +38,11 @@ class ThemeService < AbstractService
     wrap_result result
   end
 
-  def get_all details, limit=nil
-    set_instance_vars details
+  def get_all details, opts=nil
+    set_instance_vars details, opts
     validate
 
-    results = @repository.get_all details, parse_limit(limit)
+    results = @repository.get_all details, opts
 
     wrap_results results
   end

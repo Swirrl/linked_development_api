@@ -4,11 +4,12 @@ describe DocumentRepository do
   subject(:repository) { DocumentRepository.new }
   
   # The total number of each document type in the test dataset.
-  let(:r4d_total) { 34509 }
-  let(:eldis_total) { 37515 }
+  let(:r4d_total) { SpecValues::TOTAL_R4D_DOCUMENTS }
+  let(:eldis_total) { SpecValues::TOTAL_ELDIS_DOCUMENTS }
   
   describe '#get' do
     # Tests currently in document_service_spec.rb
+    # TODO move some of those specs here
   end
   
   describe '#get_all' do 

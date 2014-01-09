@@ -1,3 +1,4 @@
+
 module SampleJson
 
   # Build a test for both short/full documents based on the inferred
@@ -12,27 +13,38 @@ module SampleJson
   # [:graph, :function, :object, :id?] 
   #
   # tests for both short & full are generated for each example.
-  shared_examples 'example documents' do |params_array, filename_override=nil|
-    let(:graph_name)  { params_array[0].to_s }
-    let(:method_name) { params_array[1] }
-    let(:obj_id)      { params_array[3] } # allowed to be nil in the case of e.g. get_all
-        
+  shared_examples 'example documents' do |graph_name, method_name, object_type, opts_or_id, test_opts=nil|
+
+    let(:obj_id)      { opts_or_id.class == String ? opts_or_id : nil }  # allowed to be nil in the case of e.g. get_all
+    let(:opts_hash)   { opts_or_id } # allowed to be nil in the case of e.g. get_all
+    
     ['short', 'full'].each do |detail| 
       context detail do
-        let(:filename) do 
-          filename_override ? "#{filename_override}_#{detail}.json" 
-                            : "#{params_array.join('_')}_#{detail}.json"
-        end
-        let(:response) { service.send(method_name, {type: graph_name, id: obj_id , detail: detail}) }
-        let(:json_output) { response }
+        let(:json_output) { 
+          if method_name == :get_all
+            service.send(method_name, {type: graph_name.to_s, detail: detail}, opts_hash) 
+          else # get, count etc...
+            service.send(method_name, {type: graph_name.to_s, id: obj_id, detail: detail}) 
+          end
+        }
         
-        example "matches example document #{filename_override || params_array.join('_')}_#{detail}.json" do
+        example "matches example document #{generate_filename(graph_name, method_name, object_type, opts_or_id, detail, test_opts)}" do
+          filename = generate_filename(graph_name, method_name, object_type, opts_or_id, detail, test_opts)
           expect(sort_json(json_output)).to be == sort_json(sample_json(filename))
         end
       end
     end
   end
-  
+
+  def generate_filename graph_name, method_name, object_type, opts_or_id, detail, test_opts
+    if test_opts && test_opts[:filename]
+      "#{test_opts[:filename]}_#{detail}.json" # for where we have an id
+    else
+      obj_name = (opts_or_id.class == String) ? "#{opts_or_id}_" : ''
+      "#{graph_name}_#{method_name}_#{object_type}_#{obj_name}#{detail}.json"
+    end
+  end
+
   def sample_json(filename)
     JSON.parse(File.read(File.join(File.dirname(__FILE__), '..' , 'application', 'samples', filename)))
   end
