@@ -21,7 +21,7 @@ class ThemeService < AbstractService
 
     result = if @type == 'eldis' && is_eldis_id?(@resource_id)
                @repository.get_eldis details
-             elsif @type == 'r4d' && is_agrovoc_id?(@resource_id) 
+             elsif @type == 'r4d' && (is_dbpedia_id?(@resource_id) || is_agrovoc_id?(@resource_id))
                @repository.get_r4d details
              elsif @type == 'all'
                  if is_dbpedia_id?(@resource_id) || is_agrovoc_id?(@resource_id)
