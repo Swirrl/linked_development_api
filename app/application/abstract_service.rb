@@ -51,16 +51,16 @@ class AbstractService
     offset = @offset.present? ? Integer(@offset) : 0
     limit = @limit.present? ? Integer(@limit) : 10
 
-    next_offset = offset + limit
-    prev_offset = offset - limit
-
     params = {:num_results => limit}
 
     ret = {
      "num_results"   => number_of_matched_results,
      "start_offset"  => offset
     }
-    
+
+    next_offset = offset + limit
+    prev_offset = offset - limit
+
     if next_offset <= number_of_matched_results
       next_params = params.merge(:start_offset => next_offset).to_query
       ret['next_page'] = "#{base_url}?#{next_params}"
