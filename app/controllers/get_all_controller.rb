@@ -3,7 +3,7 @@ class GetAllController < ApplicationController
   def documents
     service = DocumentService.build
     @document = service.get_all({type: params[:graph], detail: params[:detail]}, 
-                                limit: params[:num_results], offset: params[:start_offset])
+                                host: request.env["HTTP_HOST"], limit: params[:num_results], offset: params[:start_offset])
     
     respond_with @document
   end
@@ -11,7 +11,7 @@ class GetAllController < ApplicationController
   def themes
     service = ThemeService.build
     @document = service.get_all({type: params[:graph], detail: params[:detail]}, 
-                                limit: params[:num_results], offset: params[:start_offset])
+                                host: request.env["HTTP_HOST"], limit: params[:num_results], offset: params[:start_offset])
     
     respond_with @document
   end

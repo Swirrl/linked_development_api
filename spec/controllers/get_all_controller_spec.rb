@@ -10,7 +10,7 @@ describe GetAllController do
     end
 
     it 'delegates to the ThemeService' do
-      service.should_receive(:get_all).with({type: 'eldis', detail: 'full'}, anything())
+      service.should_receive(:get_all).with({type: 'eldis', detail: 'full'}, hash_including(:host => 'test.host'))
       get :themes, graph: 'eldis', detail: 'full', :format => :json
     end
   end
@@ -21,10 +21,9 @@ describe GetAllController do
     end
 
     it 'delegates to the ThemeService' do
-      service.should_receive(:get_all).with({type: 'eldis', detail: 'full'}, anything())
+      service.should_receive(:get_all).with({type: 'eldis', detail: 'full'}, hash_including(:host => 'test.host'))
       get :documents, graph: 'eldis', detail: 'full', :format => :json
     end
-
   end
 
   describe 'GET regions' do 
@@ -38,5 +37,4 @@ describe GetAllController do
   after :each do 
     expect(response.headers['Content-Type']).to eq('application/json; charset=utf-8')
   end
-
 end

@@ -107,16 +107,16 @@ describe ThemeService do
   context "#get_all" do 
     describe 'raises error' do 
       it 'InvalidDocumentType when type is not one of eldis, r4d, or all' do 
-        expect {service.get_all type: 'foo', detail: 'short'}.to raise_error InvalidDocumentType
+        expect {service.get_all({type: 'foo', detail: 'short'}, {:host => 'test.host'})}.to raise_error InvalidDocumentType
       end
     end
 
     context 'eldis' do 
-      include_examples 'example documents', [:eldis, :get_all, :theme, {:limit => 10, :offset => 0}, {:filename => 'eldis_get_all_theme'}]
+      include_examples 'example documents', [:eldis, :get_all, :theme, {:limit => 10, :offset => 0, :host => 'test.host'}, {:filename => 'eldis_get_all_theme'}]
     end
     
     context 'r4d' do
-      include_examples 'example documents', [:r4d, :get_all, :theme, {:limit => 10, :offset => 0}, {:filename => 'r4d_get_all_theme'}]
+      include_examples 'example documents', [:r4d, :get_all, :theme, {:limit => 10, :offset => 0, :host => 'test.host'}, {:filename => 'r4d_get_all_theme'}]
     end
     
     context 'all' do 

@@ -37,15 +37,41 @@ class AbstractService
     raise StandardError, 'Override #convert_id_to_uri in subclass to use #merge_uri_with'
   end
 
-  def wrap_results results
+  def wrap_results results, base_url
     # TODO generate summary
     {
       'results' => results,
-        "metadata" => {
-                       "num_results"   => @repository.total_results_of_last_query,
-                       "start_offset"  => @offset
-                      }
+      'metadata' => metadata(base_url)
     }
+  end
+
+  def metadata base_url
+    number_of_matched_results = @repository.total_results_of_last_query
+
+    offset = @offset.present? ? Integer(@offset) : 0
+    limit = @limit.present? ? Integer(@limit) : 10
+
+    next_offset = offset + limit
+    prev_offset = offset - limit
+
+    params = {:num_results => limit}
+
+    ret = {
+     "num_results"   => number_of_matched_results,
+     "start_offset"  => offset
+    }
+    
+    if next_offset <= number_of_matched_results
+      next_params = params.merge(:start_offset => next_offset).to_query
+      ret['next_page'] = "#{base_url}?#{next_params}"
+    end
+
+    if prev_offset > 0
+      prev_params = params.merge(:start_offset => prev_offset).to_query
+      ret['prev_page'] = "#{base_url}?#{prev_params}"
+    end
+    
+    ret
   end
 
   def validate

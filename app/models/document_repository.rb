@@ -18,9 +18,10 @@ class DocumentRepository < AbstractRepository
   def get_all details, opts={}
     set_common_details details, opts
     
-    Rails.logger.info build_base_query
+    query_string = build_base_query
+    Rails.logger.debug query_string
     
-    result  = Tripod::SparqlClient::Query.query(build_base_query, 'text/turtle')
+    result  = Tripod::SparqlClient::Query.query(query_string, 'text/turtle')
     graph   = RDF::Graph.new.from_ttl(result)
 
     process_one_or_many_results(graph)

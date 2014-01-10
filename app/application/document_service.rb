@@ -26,13 +26,14 @@ class DocumentService < AbstractService
     wrap_result(result)
   end
 
-  def get_all details, opts=nil
+  def get_all details, opts
     set_instance_vars details, opts
     validate 
     
     results = @repository.get_all details, opts
     
-    wrap_results(results)
+    base_url = Rails.application.routes.url_helpers.get_all_documents_url(@type, {:host => opts[:host], :format => :json, :detail => @detail})
+    wrap_results(results, base_url)
   end
 
   private 

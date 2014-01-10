@@ -74,6 +74,7 @@
   "metadata": 
     {
         "start_offset": 0, 
-        "num_results": 1112
+        "num_results": 1112,
+        "next_page":"http://test.host/openapi/eldis/get_all/themes/short.json?num_results=10&start_offset=10"
     }
 }
