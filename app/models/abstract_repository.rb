@@ -1,4 +1,5 @@
 class AbstractRepository
+
   def common_prefixes
       <<-PREFIXES.strip_heredoc
       PREFIX dcterms: <http://purl.org/dc/terms/>

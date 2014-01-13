@@ -280,7 +280,7 @@ PRIMARY
   end
 
   def where_clause
-    <<-SPARQL
+    <<-SPARQL.strip_heredoc
     WHERE {
       {    
           #{primary_selection_query}  

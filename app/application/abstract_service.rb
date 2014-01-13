@@ -1,4 +1,25 @@
 class AbstractService
+
+  def initialize(dependencies = { })
+    @repository = dependencies.fetch(:repository)
+  end
+
+  def get details
+    set_instance_vars details
+    validate 
+    merge_uri_with! details
+    
+    result = @repository.find(details)
+
+    wrap_result(result)
+  end
+
+  def do_get_all details, opts
+    set_instance_vars details, opts
+    validate 
+    @repository.get_all details, opts
+  end
+
   protected
 
   def set_instance_vars details, opts=nil
@@ -38,7 +59,6 @@ class AbstractService
   end
 
   def wrap_results results, base_url
-    # TODO generate summary
     {
       'results' => results,
       'metadata' => metadata(base_url)

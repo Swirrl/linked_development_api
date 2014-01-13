@@ -23,13 +23,10 @@ describe GetController do
       end
     end
 
-
     it 'delegates to the ThemeService' do
       service.should_receive(:get).with({type: 'eldis', id: 'C782', detail: 'full'})
       get :themes, graph: 'eldis', id: 'C782', detail: 'full', :format => :json
     end
-
-
   end
   
   describe 'GET documents' do 
@@ -43,12 +40,26 @@ describe GetController do
     end
   end
 
-  describe 'GET regions' do 
-    pending
-  end
-
   describe 'GET countries' do 
-     pending
+    before :each do 
+      CountryService.stub(:build).and_return service
+    end
+
+    it 'delegates to the CountryService' do
+      service.should_receive(:get).with({type: 'eldis', id: 'A1036', detail: 'full'})
+      get :countries, graph: 'eldis', id: 'A1036', detail: 'full', :format => :json
+    end
+  end
+  
+  describe 'GET regions' do 
+    before :each do 
+      RegionService.stub(:build).and_return service
+    end
+
+    it 'delegates to the CountryService' do
+      service.should_receive(:get).with({type: 'eldis', id: 'C30', detail: 'full'})
+      get :regions, graph: 'eldis', id: 'C30', detail: 'full', :format => :json
+    end
   end
 
   pending 'content negotiation'
@@ -56,5 +67,4 @@ describe GetController do
   after :each do 
     expect(response.headers['Content-Type']).to eq('application/json; charset=utf-8')
   end
-
 end

@@ -5,12 +5,8 @@ class ThemeService < AbstractService
     # Convenience factory method to construct a new DocumentService
     # with the usual dependencies
     def build
-      new(theme_repository: ThemeRepository.new)
+      new(repository: ThemeRepository.new)
     end
-  end
-
-  def initialize(dependencies = { })
-    @repository = dependencies.fetch(:theme_repository)
   end
 
   def get details
@@ -39,10 +35,7 @@ class ThemeService < AbstractService
   end
 
   def get_all details, opts
-    set_instance_vars details, opts
-    validate
-
-    results = @repository.get_all details, opts
+    results = do_get_all details, opts
 
     base_url = Rails.application.routes.url_helpers.get_all_themes_url(@type, {:host => opts[:host], :format => :json, :detail => @detail})
     wrap_results results, base_url

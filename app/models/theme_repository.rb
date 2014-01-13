@@ -120,18 +120,6 @@ class ThemeRepository < AbstractRepository
     SPARQL
   end
 
-  # def primary_eldis_select
-  #   <<-SPARQL.strip_heredoc
-    #   SELECT * WHERE {
-  #     #{var_or_iriref(@resource_uri)} 
-  #        a skos:Concept ;
-  #        skos:inScheme <http://linked-development.org/eldis/themes/C2/> ;
-  #        rdfs:label ?label ;
-  #        dcterms:identifier ?parent_id .
-  #   }
-  #   SPARQL
-  # end
-
   def r4d_parent_subquery
     <<-SPARQL.strip_heredoc
          SELECT * WHERE {
@@ -146,23 +134,6 @@ class ThemeRepository < AbstractRepository
          }
        SPARQL
   end
-
-  # def r4d_parent_subquery
-  #   <<-SPARQL.strip_heredoc
-  #   GRAPH <http://linked-development.org/graph/r4d> {
-  #     {
-  #        #{primary_r4d_select} #{maybe_limit_clause} #{maybe_offset_clause}
-  #     }
-
-  #     OPTIONAL {
-  #       #{var_or_iriref(@resource_uri)} skos:narrower ?child_concept .
-  #       OPTIONAL { ?child_concept skos:prefLabel ?child_label . }
-  #       OPTIONAL { ?child_concept skos:preLabel ?child_label . }
-  #       BIND(replace(str(?child_concept), "http://aims.fao.org/aos/agrovoc/", '') AS ?child_id) .
-  #     }
-  #   }
-  #   SPARQL
-  # end
 
   def run_get_query
     query_string = build_base_query

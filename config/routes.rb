@@ -7,5 +7,11 @@ LinkedDevelopmentApi::Application.routes.draw do
 
     get '/:graph/get/themes/:id(/:detail)', to: 'get#themes', as: :get_themes
     get '/:graph/get_all/themes(/:detail)', to: 'get_all#themes', as: :get_all_themes
+
+    get '/:graph/get/countries/:id(/:detail)', to: 'get#countries', as: :get_countries
+    get '/:graph/get_all/countries(/:detail)', to: 'get_all#countries', as: :get_all_countries
+
+    get '/:graph/get/regions/:id(/:detail)', to: 'get#regions', as: :get_regions
+    get '/:graph/get_all/regions(/:detail)', to: 'get_all#regions', as: :get_all_regions
   end
 end

@@ -27,11 +27,25 @@ describe GetAllController do
   end
 
   describe 'GET regions' do 
-    pending
+    before :each do 
+      RegionService.stub(:build).and_return service
+    end
+
+    it 'delegates to the CountryService' do
+      service.should_receive(:get_all).with({type: 'eldis', detail: 'full'}, hash_including(:host => 'test.host'))
+      get :regions, graph: 'eldis', detail: 'full', :format => :json
+    end
   end
 
-  describe 'GET countries' do 
-     pending
+  describe 'GET regions' do 
+    before :each do 
+      CountryService.stub(:build).and_return service
+    end
+
+    it 'delegates to the CountryService' do
+      service.should_receive(:get_all).with({type: 'eldis', detail: 'full'}, hash_including(:host => 'test.host'))
+      get :countries, graph: 'eldis', detail: 'full', :format => :json
+    end
   end
 
   after :each do 

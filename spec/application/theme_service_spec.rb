@@ -26,7 +26,7 @@ describe ThemeService do
     
     describe 'when type is all' do 
       let(:theme_repository) { double('theme-repository') }
-      let(:service) { ThemeService.new :theme_repository => theme_repository }
+      let(:service) { ThemeService.new :repository => theme_repository }
       it 'an arbitrary id resolves to a dbpedia uri' do 
         expect(theme_repository).to receive(:get_r4d).with(hash_including(:resource_uri => "http://dbpedia.org/resource/lolkittens")).and_return dummy_document
         service.get type: 'all', id: 'lolkittens', detail: 'short'
@@ -45,7 +45,7 @@ describe ThemeService do
     
     describe 'when type is eldis' do 
       let(:theme_repository) { double('theme-repository') }
-      let(:service) { ThemeService.new :theme_repository => theme_repository }
+      let(:service) { ThemeService.new :repository => theme_repository }
       
       it 'an arbitrary id resolves raises an error' do 
         expect { service.get type: 'eldis', id: 'invalid_error', detail: 'short' }.to raise_error LinkedDevelopmentError
@@ -59,7 +59,7 @@ describe ThemeService do
 
     describe 'when type is all' do 
       let(:theme_repository) { double('theme-repository') }
-      let(:service) { ThemeService.new :theme_repository => theme_repository }
+      let(:service) { ThemeService.new :repository => theme_repository }
       
       it 'an arbitrary id resolves to a dbpedia uri' do 
         expect(theme_repository).to receive(:get_r4d).with(hash_including(:resource_uri => "http://dbpedia.org/resource/lolkittens")).and_return dummy_document
