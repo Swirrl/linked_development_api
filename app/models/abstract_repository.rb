@@ -1,5 +1,21 @@
 class AbstractRepository
 
+  def initialize
+    @metadata_url_generator = MetadataURLGenerator.new("http://linked-development.org")
+  end
+
+  def get_all details, opts={}
+    set_common_details details, opts
+    
+    query_string = build_base_query
+    Rails.logger.debug query_string
+    
+    result  = Tripod::SparqlClient::Query.query(query_string, 'text/turtle')
+    graph   = RDF::Graph.new.from_ttl(result)
+
+    process_one_or_many_results(graph)
+  end
+
   def common_prefixes
       <<-PREFIXES.strip_heredoc
       PREFIX dcterms: <http://purl.org/dc/terms/>
@@ -10,10 +26,6 @@ class AbstractRepository
       PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
       PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
       PREFIXES
-  end
-
-  def initialize
-    @metadata_url_generator = MetadataURLGenerator.new("http://linked-development.org")
   end
 
   # expects a get_all query to have been run first.

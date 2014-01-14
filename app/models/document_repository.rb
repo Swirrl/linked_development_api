@@ -15,18 +15,6 @@ class DocumentRepository < AbstractRepository
     process_one_or_many_results(graph).first
   end
 
-  def get_all details, opts={}
-    set_common_details details, opts
-    
-    query_string = build_base_query
-    Rails.logger.debug query_string
-    
-    result  = Tripod::SparqlClient::Query.query(query_string, 'text/turtle')
-    graph   = RDF::Graph.new.from_ttl(result)
-
-    process_one_or_many_results(graph)
-  end
-
   def apply_graph_type_restriction query_str
     @type == 'all' ? unionise(graphise('eldis', query_str), 
                               graphise('r4d', query_str)) 
