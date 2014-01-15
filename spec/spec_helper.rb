@@ -19,6 +19,7 @@ RSpec.configure do |config|
 
   config.extend SampleJson
   config.include SampleJson
+  config.filter_run_excluding :broken => true
 end
 
 module SpecValues
@@ -29,4 +30,8 @@ module SpecValues
   TOTAL_R4D_THEMES = 34835
   TOTAL_ELDIS_THEMES = 1112
   TOTAL_THEMES = TOTAL_R4D_THEMES + TOTAL_ELDIS_THEMES
+
+  TOTAL_ELDIS_COUNTRIES = 216
+  TOTAL_R4D_COUNTRIES = 192
+  TOTAL_COUNTRIES = TOTAL_ELDIS_COUNTRIES + TOTAL_R4D_COUNTRIES
 end

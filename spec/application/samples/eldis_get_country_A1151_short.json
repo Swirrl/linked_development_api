@@ -1,0 +1,12 @@
+{
+    "results": [
+        {
+            "title": "Nauru",
+            "object_id": "A1151",
+            "iso_two_letter_code": "NR",
+            "object_type": "Country",
+            "metadata_url": "http://linked-development.org/openapi/eldis/get/countries/A1151/full",
+            "linked_data_uri": "http://linked-development.org/eldis/geography/A1151/"
+        }
+    ]
+}

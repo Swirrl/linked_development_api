@@ -1,0 +1,12 @@
+{
+    "results": [
+        {
+            "title": "Turkey",
+            "object_id": "Turkey",
+            "iso_two_letter_code": "TR",
+            "object_type": "Country",
+            "metadata_url": "http://linked-development.org/openapi/r4d/get/countries/Turkey/full",
+            "linked_data_uri": "http://www.fao.org/countryprofiles/geoinfo/geopolitical/resource/Turkey"
+        }
+    ]
+}

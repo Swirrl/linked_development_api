@@ -7,7 +7,7 @@ describe ThemeRepository do
 
   subject(:repository) { ThemeRepository.new }
 
-  describe '#get' do
+  describe '#get_eldis' do
     context 'no such id' do 
       let(:document) { repository.get_eldis(type: "eldis", resource_uri: "http://linked-development.org/eldis/themes/C9999999999999/", detail: "full") }
 

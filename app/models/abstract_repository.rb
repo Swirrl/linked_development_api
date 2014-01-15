@@ -4,6 +4,16 @@ class AbstractRepository
     @metadata_url_generator = MetadataURLGenerator.new("http://linked-development.org")
   end
 
+  def get_one details
+    set_common_details details, raise_error_on_nil_resource_uri: true
+    @limit = 1
+
+    result  = Tripod::SparqlClient::Query.query(build_base_query, 'text/turtle')
+    graph   = RDF::Graph.new.from_ttl(result)
+
+    process_one_or_many_results(graph).first
+  end
+
   def get_all details, opts={}
     set_common_details details, opts
     
@@ -18,13 +28,14 @@ class AbstractRepository
 
   def common_prefixes
       <<-PREFIXES.strip_heredoc
-      PREFIX dcterms: <http://purl.org/dc/terms/>
-      PREFIX bibo: <http://purl.org/ontology/bibo/>
-      PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-      PREFIX fao: <http://www.fao.org/countryprofiles/geoinfo/geopolitical/resource/>
-      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-      PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-      PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
+        PREFIX owl: <http://www.w3.org/2002/07/owl#>
+        PREFIX dcterms: <http://purl.org/dc/terms/>
+        PREFIX bibo: <http://purl.org/ontology/bibo/>
+        PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+        PREFIX fao: <http://www.fao.org/countryprofiles/geoinfo/geopolitical/resource/>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+        PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
       PREFIXES
   end
 
@@ -83,6 +94,14 @@ class AbstractRepository
     end
   end
 
+  def uri_or_as maybe_uri
+    if maybe_uri 
+      "(<#{maybe_uri}> AS ?resource)"
+    else
+      "?resource"
+    end
+  end
+
   def process_one_or_many_results graph
     initial_solutions = get_solutions_from_graph graph
     
@@ -92,15 +111,19 @@ class AbstractRepository
   end
 
   def get_solutions_from_graph graph
-    raise StandardError, 'Subclasses should implement this method.'
+    raise StandardError, 'Subclasses should implement the method #get_solutions_from_graph.'
   end
 
   def process_each_result graph, current_result
-    raise StandardError, 'Subclasses should implement this method.'
+    raise StandardError, 'Subclasses should implement the method #process_each_result.'
   end
 
   def totalise_query
     raise StandardError, 'Subclasses should implement this #totalise_query method to support #total_results'
+  end
+
+  def construct
+    raise StandardError, 'Subclasses should provide a #construct method in order to use #build_base_query'
   end
 
   # Builds a union query out of the supplied sub query strings

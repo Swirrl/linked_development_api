@@ -3,6 +3,10 @@ require 'rdf/vocab/bibo'
 
 class ThemeRepository < AbstractRepository
 
+  def get_one
+    raise StandardError, 'Use either get_eldis or get_r4d to find a single document'
+  end
+
   def get_eldis details
     set_common_details details.merge(:type => 'eldis'), raise_error_on_nil_resource_uri: true
     @limit = 1
@@ -38,7 +42,7 @@ class ThemeRepository < AbstractRepository
   def where_clause
     child_subqueries = case @type
                          when 'eldis' ; eldis_child_subquery
-                       when 'r4d' ; r4d_child_subquery
+                         when 'r4d' ; r4d_child_subquery
                        else 
                          <<-SPARQL.strip_heredoc 
                              #{eldis_child_subquery} 
@@ -137,7 +141,6 @@ class ThemeRepository < AbstractRepository
   end
 
   def get_solutions_from_graph graph
-
     theme_res = @resource_uri ? RDF::URI.new(@resource_uri) : :theme_uri
 
     # don't offset here as this is just a subset of the results from the server

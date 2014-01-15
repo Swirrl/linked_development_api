@@ -6,15 +6,6 @@ require 'rdf/vocab/bibo'
 
 class DocumentRepository < AbstractRepository
 
-  def find(details)
-    set_common_details details, raise_error_on_nil_resource_uri: true
-
-    result  = Tripod::SparqlClient::Query.query(build_base_query, 'text/turtle')
-    graph   = RDF::Graph.new.from_ttl(result)
-
-    process_one_or_many_results(graph).first
-  end
-
   def apply_graph_type_restriction query_str
     @type == 'all' ? unionise(graphise('eldis', query_str), 
                               graphise('r4d', query_str)) 

@@ -9,7 +9,7 @@ class AbstractService
     validate 
     merge_uri_with! details
     
-    result = @repository.find(details)
+    result = @repository.get_one(details)
 
     wrap_result(result)
   end
@@ -29,6 +29,7 @@ class AbstractService
 
     if opts.present?
       @offset = (opts[:offset] || 0).to_i
+      @limit = (opts[:limit] || 10).to_i
     end
     
     Rails.logger.info "set offset to #{@offset} #{details.inspect}"
@@ -81,7 +82,7 @@ class AbstractService
     next_offset = offset + limit
     prev_offset = offset - limit
 
-    if next_offset <= number_of_matched_results
+    if next_offset < number_of_matched_results
       next_params = params.merge(:start_offset => next_offset).to_query
       ret['next_page'] = "#{base_url}?#{next_params}"
     end

@@ -7,7 +7,7 @@ describe DocumentRepository do
   let(:r4d_total) { SpecValues::TOTAL_R4D_DOCUMENTS }
   let(:eldis_total) { SpecValues::TOTAL_ELDIS_DOCUMENTS }
   
-  describe '#get' do
+  describe '#get_one' do
     # Tests currently in document_service_spec.rb
     # TODO move some of those specs here
   end
