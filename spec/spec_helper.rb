@@ -34,4 +34,9 @@ module SpecValues
   TOTAL_ELDIS_COUNTRIES = 216
   TOTAL_R4D_COUNTRIES = 192
   TOTAL_COUNTRIES = TOTAL_ELDIS_COUNTRIES + TOTAL_R4D_COUNTRIES
+
+  TOTAL_ELDIS_REGIONS = 10
+  TOTAL_R4D_REGIONS = 26 # There are 27 in total, but only 26 linked
+                         # against documents in our test data.
+  TOTAL_REGIONS = TOTAL_ELDIS_REGIONS + TOTAL_R4D_REGIONS
 end

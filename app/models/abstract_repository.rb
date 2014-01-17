@@ -8,7 +8,10 @@ class AbstractRepository
     set_common_details details, raise_error_on_nil_resource_uri: true
     @limit = 1
 
-    result  = Tripod::SparqlClient::Query.query(build_base_query, 'text/turtle')
+    query_string = build_base_query
+    Rails.logger.debug query_string
+
+    result  = Tripod::SparqlClient::Query.query(query_string, 'text/turtle')
     graph   = RDF::Graph.new.from_ttl(result)
 
     process_one_or_many_results(graph).first
@@ -36,6 +39,7 @@ class AbstractRepository
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
         PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
         PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
+        PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
       PREFIXES
   end
 
@@ -54,17 +58,20 @@ class AbstractRepository
     @type = details.fetch(:type)
     @detail = details.fetch(:detail)
     @resource_uri = details[:resource_uri]
+    @resource_id = details[:id]
     raise StandardError, 'No resource_uri was supplied.' if opts.present? && opts[:raise_on_nil_resource_uri] && @resource_uri.nil? 
     @limit = parse_limit opts
     @offset = parse_offset opts
   end
   
-  def build_base_query
+  def build_base_query clauses=nil
+    clauses = clauses.present? ? clauses : where_clause
+
     <<-SPARQL.strip_heredoc
       #{common_prefixes}
 
       #{construct}
-      #{where_clause}
+      #{clauses}
     SPARQL
   end
 
@@ -160,4 +167,31 @@ SPARQL
     (opts == nil || opts[:offset] == nil) ? 0 : Integer(opts[:offset])
   end
 
+  # Use this for coining localised graph uri's.  A bit of a hack, but
+  # it lets us generate URI's for construct graphs that only have
+  # meaning within this app.
+  def local_uri slug
+    "http://linked-development.org/o/#{slug}"
+  end
+
+  # Calculate the total results in the query.  Subclasses may need to
+  # override this to generate a correct answer.
+  def totalise_query
+    total_q = <<-SPARQL.strip_heredoc
+    #{common_prefixes}
+    SELECT (COUNT(DISTINCT ?resource) AS ?total) WHERE { 
+      #{primary_where_clause}
+    }
+    SPARQL
+    Rails.logger.info total_q
+    total_q
+  end
+
+  # Objects that want to reuse totalise_query need to implement this
+  # method.  And ensure that ?resource is a SPARQL variable, as this
+  # is what we count. This method should avoid using limit/offset, as
+  # it needs to return the number of available results.
+  def primary_where_clause
+    raise StandardError, 'To use #totalise_query, you must implement #primary_where_clause'
+  end
 end
