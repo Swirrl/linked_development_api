@@ -1,7 +1,10 @@
 class AbstractService
 
+  attr_reader :valid_graphs
+  
   def initialize(dependencies = { })
     @repository = dependencies.fetch(:repository)
+    @valid_graphs = %w[all eldis r4d]
   end
 
   def get details
@@ -34,9 +37,9 @@ class AbstractService
     
     Rails.logger.info "set offset to #{@offset} #{details.inspect}"
   end
-
+  
   def graph_valid? 
-    %w[eldis r4d all].include?(@type)
+    valid_graphs.include?(@type)
   end
 
   def detail_valid?
@@ -98,7 +101,7 @@ class AbstractService
 
   def validate
     raise LinkedDevelopmentError, 'Detail must be either full, short or unspecified (in which case it defaults to short).' unless detail_valid?
-    raise InvalidDocumentType, "Graph #{@type} is not valid." unless graph_valid?
+    raise InvalidDocumentType, "Graph #{@type} is not supported for this object type.  Valid graphs are: #{@valid_graphs.join(', ')}." unless graph_valid?
   end
 
 end

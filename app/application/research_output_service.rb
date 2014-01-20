@@ -9,6 +9,11 @@ class ResearchOutputService < AbstractService
     end
   end
 
+  def initialize(dependencies = {})
+    super dependencies
+    @valid_graphs = %w[all r4d]
+  end
+  
   def get details
     set_instance_vars details
     validate 
