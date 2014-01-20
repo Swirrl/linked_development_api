@@ -50,6 +50,7 @@ class AbstractService
     }
   end
 
+  # Note to use this Subclasses must implement #convert_id_to_uri.
   def merge_uri_with! details 
     resource_uri = convert_id_to_uri(@resource_id)
     details.merge! :resource_uri => resource_uri

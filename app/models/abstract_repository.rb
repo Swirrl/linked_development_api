@@ -31,7 +31,6 @@ class AbstractRepository
 
   def common_prefixes
       <<-PREFIXES.strip_heredoc
-        PREFIX owl: <http://www.w3.org/2002/07/owl#>
         PREFIX dcterms: <http://purl.org/dc/terms/>
         PREFIX bibo: <http://purl.org/ontology/bibo/>
         PREFIX foaf: <http://xmlns.com/foaf/0.1/>
@@ -39,6 +38,8 @@ class AbstractRepository
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
         PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
         PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
+        PREFIX linkeddev: <http://linked-development.org/dev/#>
+        PREFIX dbpo: <http://dbpedia.org/ontology/>
         PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
       PREFIXES
   end
@@ -93,19 +94,32 @@ class AbstractRepository
   # grammar.  If the supplied argument is nil then we return a string
   # of '?resource' othewise we return a SPARQL IRIRef (i.e. a '<URI>'
   # string.)
-  def var_or_iriref maybe_uri
+  def var_or_iriref maybe_uri, var='?resource'
     if maybe_uri
       "<#{maybe_uri}>"
     else
-      "?resource"
+      var
     end
   end
 
-  def uri_or_as maybe_uri
+  # Generates a string that conforms to a VarOrIRIref in the SPARQL
+  # grammar.  If the supplied argument is nil then we return a string
+  # of '?resource' othewise we return a SPARQL IRIRef (i.e. a '<URI>'
+  # string.)
+  def var_or_literal maybe_literal, var='?resource'
+    if maybe_literal
+      "\"#{maybe_literal}\""
+    else
+      var
+    end
+  end
+  
+  
+  def uri_or_as maybe_uri, var='?resource'
     if maybe_uri 
       "(<#{maybe_uri}> AS ?resource)"
     else
-      "?resource"
+      var
     end
   end
 
