@@ -18,10 +18,6 @@ class GetController < ApplicationController
     get_it_from RegionService
   end
 
-  def research_outputs
-    get_it_from ResearchOutputService
-  end
-  
   private
   
   def get_it_from klass

@@ -38,7 +38,7 @@ class AbstractRepository
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
         PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
         PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
-        PREFIX linkeddev: <http://linked-development.org/dev/#>
+        PREFIX linkeddev: <#{local_uri('')}>
         PREFIX dbpo: <http://dbpedia.org/ontology/>
         PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
       PREFIXES
@@ -113,11 +113,18 @@ class AbstractRepository
       var
     end
   end
-  
+
+  def literal_or_as maybe_literal, var='?resource'
+    if maybe_literal 
+      "(\"#{maybe_literal}\" AS #{var})"
+    else
+      var
+    end    
+  end
   
   def uri_or_as maybe_uri, var='?resource'
     if maybe_uri 
-      "(<#{maybe_uri}> AS ?resource)"
+      "(<#{maybe_uri}> AS #{var})"
     else
       var
     end
@@ -185,7 +192,7 @@ SPARQL
   # it lets us generate URI's for construct graphs that only have
   # meaning within this app.
   def local_uri slug
-    "http://linked-development.org/o/#{slug}"
+    "http://linked-development.org/dev/#{slug}"
   end
 
   # Calculate the total results in the query.  Subclasses may need to

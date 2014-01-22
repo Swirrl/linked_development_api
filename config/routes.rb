@@ -17,7 +17,7 @@ LinkedDevelopmentApi::Application.routes.draw do
     get '/:graph/get/regions/:id(/:detail)', to: 'get#regions', as: :get_regions
     get '/:graph/get_all/regions(/:detail)', to: 'get_all#regions', as: :get_all_regions
 
-    get '/:graph/get/research_outputs/:id(/:detail)', to: 'get#research_outputs', as: :get_research_outputs
-    get '/:graph/get_all/research_outputs(/:detail)', to: 'get_all#research_outputs', as: :get_all_research_outputs
+    get '/:graph/get/research_outputs/:id(/:detail)', to: 'research_output#get', as: :get_research_outputs
+    get '/:graph/get_all/research_outputs(/:detail)', to: 'research_output#get_all', as: :get_all_research_outputs
   end
 end

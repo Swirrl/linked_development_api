@@ -16,10 +16,6 @@ class GetAllController < ApplicationController
     get_all_from RegionService
   end
 
-  def research_outputs
-    get_all_from ResearchOutputService
-  end
-
   private
 
   def get_all_from klass

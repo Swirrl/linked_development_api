@@ -48,18 +48,6 @@ describe GetAllController do
     end
   end
 
-  describe 'GET research_outputs' do 
-    before :each do 
-      ResearchOutputService.stub(:build).and_return service
-    end
-
-    it 'delegates to the ResearchOutputService' do
-      service.should_receive(:get_all).with({type: 'r4d', detail: 'full'}, hash_including(:host => 'test.host'))
-      get :research_outputs, graph: 'r4d', detail: 'full', :format => :json
-    end
-  end
-  
-  
   after :each do 
     expect(response.headers['Content-Type']).to eq('application/json; charset=utf-8')
   end

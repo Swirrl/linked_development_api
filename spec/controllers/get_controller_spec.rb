@@ -61,17 +61,6 @@ describe GetController do
       get :regions, graph: 'eldis', id: 'C30', detail: 'full', :format => :json
     end
   end
-
-  describe 'GET research_outputs' do 
-    before :each do 
-      ResearchOutputService.stub(:build).and_return service
-    end
-
-    it 'delegates to the ResearchOutputService' do
-      service.should_receive(:get).with({type: 'r4d', id: 'GB-1-112681', detail: 'full'})
-      get :research_outputs, graph: 'r4d', id: 'GB-1-112681', detail: 'full', :format => :json
-    end
-  end
   
   pending 'content negotiation'
 

@@ -64,6 +64,7 @@ class AbstractService
   end
 
   def wrap_results results, base_url
+    results = [] if results.nil?
     {
       'results' => results,
       'metadata' => metadata(base_url)
