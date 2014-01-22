@@ -177,7 +177,7 @@ class ThemeRepository < AbstractRepository
           {'object_name' => s.label.value,
            'level' => '1', # TODO generate level
            'object_id' => s._object_id.value,
-           'linked_data_url' => s.child_uri.to_s,
+           'linked_data_uri' => s.child_uri.to_s,
            'metadata_url' => @metadata_url_generator.theme_url(@type, s._object_id.value) }
         end
         
