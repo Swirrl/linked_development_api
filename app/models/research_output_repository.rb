@@ -56,7 +56,7 @@ class ResearchOutputRepository < AbstractRepository
         
           ?output dcterms:isPartOf ?resource .
         
-        } GROUP BY ?resource ?title ?projectUri ?projectId #{maybe_limit_clause} #{maybe_offset_clause}
+        } GROUP BY ?resource ?title ?projectUri ?projectId 
     SPARQL
   end
   
@@ -64,7 +64,7 @@ class ResearchOutputRepository < AbstractRepository
     <<-SPARQL.strip_heredoc
    {
       {  
-        #{primary_subquery}
+        #{primary_subquery} #{maybe_limit_clause} #{maybe_offset_clause}
       }
       
       {

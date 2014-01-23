@@ -87,6 +87,8 @@ class AbstractService
     next_offset = offset + limit
     prev_offset = offset - limit
 
+    Rails.logger.info("next_offset is #{next_offset} current offset: #{offset} limit: #{limit}")
+    
     if next_offset < number_of_matched_results
       next_params = params.merge(:start_offset => next_offset).to_query
       ret['next_page'] = "#{base_url}?#{next_params}"

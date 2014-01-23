@@ -15,7 +15,8 @@ class ResearchOutputService < AbstractService
   end
   
   def get details, opts
-    set_instance_vars details
+    set_instance_vars details, opts
+
     validate 
 
     # Only r4d provides research outputs
