@@ -11,14 +11,14 @@ class ResearchOutputController < ApplicationController
   
   def get
     @research_output = @service.get({type: params[:graph], detail: params[:detail], id: params[:id]}, 
-                                    host: request.env["HTTP_HOST"], limit: params[:num_results], offset: params[:start_offset])
+                                     host: request.env["HTTP_HOST"], limit: params[:num_results], offset: params[:start_offset], :per_project => params[:per_project])
     
     respond_with @research_output
   end
 
   def get_all
     @research_output = @service.get_all({type: params[:graph], detail: params[:detail]},
-                                        host: request.env["HTTP_HOST"], limit: params[:num_results], offset: params[:start_offset])
+                                         host: request.env["HTTP_HOST"], limit: params[:num_results], offset: params[:start_offset], :per_project => params[:per_project])
     
     respond_with @research_output
   end

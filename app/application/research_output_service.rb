@@ -19,7 +19,7 @@ class ResearchOutputService < AbstractService
     validate 
 
     # Only r4d provides research outputs
-    result = @repository.get_r4d(details)
+    result = @repository.get_r4d(details, opts)
     
     base_url = Rails.application.routes.url_helpers.get_research_outputs_url(@type, {:host => opts[:host], :format => :json, :detail => @detail, :id => details[:id]})
     
@@ -27,6 +27,7 @@ class ResearchOutputService < AbstractService
   end
   
   def get_all details, opts
+    
     results = do_get_all details, opts
 
     base_url = Rails.application.routes.url_helpers.get_all_research_outputs_url(@type, {:host => opts[:host], :format => :json, :detail => @detail})
