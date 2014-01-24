@@ -20,4 +20,7 @@ LinkedDevelopmentApi::Application.routes.draw do
     get '/:graph/get/research_outputs/:id(/:detail)', to: 'research_output#get', as: :get_research_outputs
     get '/:graph/get_all/research_outputs(/:detail)', to: 'research_output#get_all', as: :get_all_research_outputs
   end
+
+  match "/404", to: "errors#not_found"
+  match "/500", to: "errors#error"    
 end
