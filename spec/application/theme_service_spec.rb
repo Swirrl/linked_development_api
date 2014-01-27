@@ -134,4 +134,20 @@ describe ThemeService do
       context 'full'
     end
   end
+
+  # count
+  
+  context '#count' do
+    let(:repository) { double('repository') }
+    let(:service) { ThemeService.new :repository => repository } 
+    
+    context 'raises error on invalid graph type' do
+      specify { expect { service.count('foo') }.to raise_error InvalidDocumentType }
+    end
+
+    it 'delegates to repository' do
+the      repository.should_receive(:count).with('r4d')
+      service.count('r4d')
+    end
+  end
 end

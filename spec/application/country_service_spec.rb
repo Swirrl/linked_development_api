@@ -44,18 +44,6 @@ describe CountryService do
         include_examples 'example documents', [:all, :get, :country, 'Turkey', {filename: "r4d_get_country_Turkey"}] # equivalent to r4d query
       end
     end
-
-    # context 'eldis' do
-    #   context "id: C782" do
-    #     include_examples 'example documents', [:eldis, :get, :theme, 'C782']
-    #   end
-    # end
-
-    # context 'r4d' do
-    #   context 'id: c_10176' do 
-    #     include_examples 'example documents', [:r4d, :get, :theme, 'c_10176']
-    #   end
-    # end
   end
 
   # get_all
@@ -68,26 +56,33 @@ describe CountryService do
     end
 
     context 'eldis' do 
-      #include_examples 'example documents', [:eldis, :get_all, :theme, {:limit => 10, :offset => 0, :host => 'test.host'}, {:filename => 'eldis_get_all_theme'}]
+      pending
     end
     
     context 'r4d' do
-      #include_examples 'example documents', [:r4d, :get_all, :theme, {:limit => 10, :offset => 0, :host => 'test.host'}, {:filename => 'r4d_get_all_theme'}]
+      pending
     end
     
-    # context 'all' do 
-    #   context 'short' do 
-    #     let(:response) { service.get_all(type: 'eldis', detail: 'short') }
-      
-    #     let(:json_output) { response.to_json }
-    #     example "matches example document" do
-    #       pending 'TODO'
-        
-    #       expect(JSON.parse(json_output)).to be == sample_json("eldis_get_all_theme_short.json")
-    #     end
-    #   end
-      
-    #   context 'full'
-    # end
+    context 'all' do 
+      pending
+    end
   end
+
+  # count
+  
+  context '#count' do
+    let(:repository) { double('repository') }
+    let(:service) { ThemeService.new :repository => repository } 
+    
+    context 'raises error on invalid graph type' do
+      specify { expect { service.count({:type => 'foo'}, {:host => 'test.host'}) }.to raise_error InvalidDocumentType }
+    end
+
+    it 'delegates to repository' do
+      repository.should_receive(:count).with('r4d', an_instance_of(Hash))
+      repository.should_receive(:total_results_of_count_query).and_return 10
+      service.count({:type => 'r4d'}, {:host => 'test.host'})
+    end
+  end
+
 end

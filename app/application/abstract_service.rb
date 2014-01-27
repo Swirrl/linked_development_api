@@ -23,6 +23,13 @@ class AbstractService
     @repository.get_all details, opts
   end
 
+  def count details, opts
+
+    raise InvalidDocumentType, "Graph #{@type} is not supported for this object type.  Valid graphs are: #{@valid_graphs.join(', ')}." unless graph_valid?
+    
+    @repository.count @type, opts
+  end
+  
   protected
 
   def set_instance_vars details, opts=nil
@@ -64,16 +71,27 @@ class AbstractService
   end
 
   def wrap_results results, base_url
+    number_of_matched_results = @repository.total_results_of_last_query
+    wrap_count_common(results, number_of_matched_results, base_url)
+  end
+
+  def wrap_count_results results, base_url
+    number_of_matched_results = @repository.total_results_of_count_query
+    Rails.logger.info "num matched: #{number_of_matched_results}"
+    wrap_count_common(results, number_of_matched_results, base_url)
+  end
+
+  # common wrapping JSON structure of openapi queries.  Shared by
+  # count and get_all queries.
+  def wrap_count_common results, number_of_matched_results, base_url
     results = [] if results.nil?
     {
       'results' => results,
-      'metadata' => metadata(base_url)
+      'metadata' => metadata(base_url, number_of_matched_results)
     }
   end
-
-  def metadata base_url
-    number_of_matched_results = @repository.total_results_of_last_query
-
+    
+  def metadata base_url, number_of_matched_results
     offset = @offset.present? ? Integer(@offset) : 0
     limit = @limit.present? ? Integer(@limit) : 10
 
@@ -106,5 +124,4 @@ class AbstractService
     raise LinkedDevelopmentError, 'Detail must be either full, short or unspecified (in which case it defaults to short).' unless detail_valid?
     raise InvalidDocumentType, "Graph #{@type} is not supported for this object type.  Valid graphs are: #{@valid_graphs.join(', ')}." unless graph_valid?
   end
-
 end

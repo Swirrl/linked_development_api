@@ -19,6 +19,13 @@ LinkedDevelopmentApi::Application.routes.draw do
 
     get '/:graph/get/research_outputs/:id(/:detail)', to: 'research_output#get', as: :get_research_outputs
     get '/:graph/get_all/research_outputs(/:detail)', to: 'research_output#get_all', as: :get_all_research_outputs
+
+
+    # In order to conform to the API these URI patterns do not follow
+    # Rails conventions and are singular (e.g. theme not themes)
+    get '/:graph/count/documents/theme', to: 'count#themes', as: :count_themes
+    get '/:graph/count/documents/region', to: 'count#regions', as: :count_regions
+    get '/:graph/count/documents/country', to: 'count#countries', as: :count_countries
   end
 
   match "/404", to: "errors#not_found"

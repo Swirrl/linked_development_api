@@ -183,4 +183,8 @@ describe DocumentService do
       )
     }
   end
+
+  # document does not implement count, because every count is related
+  # to documents.
+
 end

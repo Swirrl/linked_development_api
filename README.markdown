@@ -41,3 +41,7 @@ documented here.
 
 ### Research Outputs
 
+
+### Count
+
+- Count now returns counts as JSON integers not strings.

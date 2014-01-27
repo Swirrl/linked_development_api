@@ -235,4 +235,45 @@ describe ThemeRepository do
       end
     end
   end
+
+  describe '#count' do
+    context 'eldis' do
+      subject(:response) { repository.count('eldis', {:host => 'test.host', :limit => 10}) }
+      specify { expect(response.class).to be Array }
+      specify { expect(response.length).to eq(10) }
+      
+      context 'record' do
+        subject(:record) { response.first }
+        specify { expect(record.class).to be Hash }
+        specify { expect(record['object_type']).to eq('theme') }        
+        specify { expect(record['level']).to eq('NPIS') }
+        specify { expect(record['object_name'].class).to be String }
+        specify { expect(record['count']).to eq(9) }
+        specify { expect(record['object_id']).to eq('C985') }
+        specify { expect(record['metadata_url']).to match(/http:\/\/linked-development.org\/openapi\/eldis\/get\/themes\/.*\/full/) }
+      end
+    end
+    
+    context 'r4d' do
+      subject(:response) { repository.count('r4d', {:host => 'test.host', :limit => 3}) }
+      specify { expect(response.class).to be Array }
+      specify { expect(response.length).to eq(3) }
+      
+      context 'record' do
+        subject(:record) { response.first }
+        specify { expect(record.class).to be Hash }
+        specify { expect(record['object_type']).to eq('theme') }        
+        specify { expect(record['level']).to eq('NPIS') }
+        specify { expect(record['object_name'].class).to be String }
+        specify { expect(record['count']).to be 2 }
+        specify { expect(record['metadata_url']).to match(/http:\/\/linked-development.org\/openapi\/r4d\/get\/themes\/.*\/full/) }
+      end
+    end
+    
+    context 'all' do
+      subject(:response) { repository.count('all', {:host => 'test.host', :limit => 7000}) }
+      specify { expect(response.class).to be Array }
+      specify { expect(response.count).to be 6597 } # there are 6597 resources in total
+    end
+  end
 end

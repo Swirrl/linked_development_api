@@ -47,11 +47,26 @@ class AbstractRepository
   # expects a get_all query to have been run first.
   def total_results_of_last_query 
     raise StandardError, 'A get_all query must have been run before calling this method.' if @type == nil
-
-    result = Tripod::SparqlClient::Query.select totalise_query
+    result = Tripod::SparqlClient::Query.select totalise_query(primary_where_clause)
     result[0]['total']['value'].to_i
   end
 
+  def total_results_of_count_query
+    raise StandardError, 'A count query must have been run before calling this method.' if @type == nil
+
+    q_string = totalise_query(apply_graph_type_restriction(countable_fragment), "?countable")
+
+    Rails.logger.info q_string
+
+    result = Tripod::SparqlClient::Query.select q_string
+    result[0]['total']['value'].to_i
+  end
+  
+  
+  def count type
+    raise StandardError, 'Subclasses should override this method. Where appropriate.'
+  end
+  
   protected
 
   def set_common_details details, opts=nil
@@ -146,7 +161,7 @@ class AbstractRepository
     raise StandardError, 'Subclasses should implement the method #process_each_result.'
   end
 
-  def totalise_query
+  def totalise_query query_clauses
     raise StandardError, 'Subclasses should implement this #totalise_query method to support #total_results'
   end
 
@@ -164,13 +179,19 @@ class AbstractRepository
   end
 
   def graphise graph_slug, query
-    <<SPARQL 
-GRAPH <http://linked-development.org/graph/#{graph_slug}> {  
-    #{query} 
-}
-SPARQL
+    <<-SPARQL.strip_heredoc
+    GRAPH <http://linked-development.org/graph/#{graph_slug}> {  
+      #{query} 
+    }
+    SPARQL
   end
 
+  def apply_graph_type_restriction query_str
+    @type == 'all' ? unionise(graphise('eldis', query_str), 
+                              graphise('r4d', query_str)) 
+                   : graphise(@type, query_str)
+  end
+  
   # wrap in a WHERE clause
   def whereise query_str
     <<-SPARQL.strip_heredoc
@@ -197,17 +218,29 @@ SPARQL
 
   # Calculate the total results in the query.  Subclasses may need to
   # override this to generate a correct answer.
-  def totalise_query
-    total_q = <<-SPARQL.strip_heredoc
+  # def totalise_query query_clauses
+  #   total_q = <<-SPARQL.strip_heredoc
+  #   #{common_prefixes}
+  #   SELECT (COUNT(DISTINCT ?resource) AS ?total) WHERE { 
+  #     #{query_clauses}
+  #   }
+  #   SPARQL
+  #   total_q
+  # end
+
+  def totalise_query primary_subquery, count_var="?resource"
+    <<-SPARQL.strip_heredoc
     #{common_prefixes}
-    SELECT (COUNT(DISTINCT ?resource) AS ?total) WHERE { 
-      #{primary_where_clause}
+
+    SELECT (COUNT(DISTINCT #{count_var}) AS ?total) WHERE { 
+       {
+           #{primary_subquery}
+       }
     }
     SPARQL
-    Rails.logger.info total_q
-    total_q
   end
-
+  
+  
   # Objects that want to reuse totalise_query need to implement this
   # method.  And ensure that ?resource is a SPARQL variable, as this
   # is what we count. This method should avoid using limit/offset, as

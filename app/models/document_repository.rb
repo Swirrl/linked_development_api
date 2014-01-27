@@ -6,12 +6,6 @@ require 'rdf/vocab/bibo'
 
 class DocumentRepository < AbstractRepository
 
-  def apply_graph_type_restriction query_str
-    @type == 'all' ? unionise(graphise('eldis', query_str), 
-                              graphise('r4d', query_str)) 
-                   : graphise(@type, query_str)
-  end
-
   def totalise_query
     base_query_pattern = <<-SPARQL.strip_heredoc
           ?articles a bibo:Article ;

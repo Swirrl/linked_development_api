@@ -41,6 +41,13 @@ class ThemeService < AbstractService
     wrap_results results, base_url
   end
 
+  def count details, opts
+    set_instance_vars details, opts
+    base_url = Rails.application.routes.url_helpers.count_themes_url(@type, {:host => opts[:host], :format => :json})
+    results = super(details, opts)
+    wrap_count_results results, base_url
+  end
+  
   private
 
   # Generate a resource URI for the theme, note this is different from a 'metadata_url'

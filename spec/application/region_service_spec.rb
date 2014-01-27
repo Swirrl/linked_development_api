@@ -58,14 +58,26 @@ describe RegionService do
     end
   end    
   
+  # count
+  
+  context '#count' do
+    let(:repository) { double('repository') }
+    let(:service) { ThemeService.new :repository => repository } 
+    
+    context 'raises error on invalid graph type' do
+      specify { expect { service.count('foo') }.to raise_error InvalidDocumentType }
+    end
 
+    it 'delegates to repository' do
+      repository.should_receive(:count).with('r4d')
+      service.count('r4d')
+    end
 
-  # describe 'integration specs' do
-  #   context 'all' do 
-  #     context "id: A1151 (eldis)" do
-  #       include_examples 'example documents', [:all, :get, :country, 'A1151', {filename: 'eldis_get_country_A1151'}] # equivalent to eldis query
-  #     end
-  #   end
-  # end
-
+    context 'metadata' do
+      let(:service) { RegionService.build } 
+      let(:results) { service.count('r4d') }
+      
+      specify { expect(results['metadata'].class).to be Hash }
+    end
+  end
 end

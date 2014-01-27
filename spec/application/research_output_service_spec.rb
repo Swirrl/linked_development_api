@@ -44,8 +44,26 @@ describe ResearchOutputService do
     end
 
     describe 'when type is all' do 
-    
+      pending
     end
   end
 
+  # count
+  
+  context '#count' do
+    context 'eldis' do
+      subject(:response) { service.count(type: 'eldis') }
+      pending
+    end
+
+    context 'r4d' do
+      subject(:response) { service.count(type: 'r4d') }      
+      pending
+    end
+
+    context 'all' do
+      subject(:response) { service.count(type: 'all') }      
+      pending
+    end
+  end
 end

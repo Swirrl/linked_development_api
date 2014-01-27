@@ -73,7 +73,7 @@
   ],
   "metadata": {
     "start_offset": 0, 
-    "num_results": 34835,
+    "num_results": 34832,
     "next_page":"http://test.host/openapi/r4d/get_all/themes/short.json?num_results=10&start_offset=10"
   }
 }

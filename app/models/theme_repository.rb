@@ -20,8 +20,68 @@ class ThemeRepository < AbstractRepository
 
     process_one_or_many_results(run_get_query).first
   end
+
+  def count type, opts
+    @type = type
+    @limit = parse_limit opts
+    @offset = parse_offset opts
+    
+    results  = Tripod::SparqlClient::Query.select(count_query_string)
+
+    results.map do |r|
+      obj_id = r['countableId']['value']
+      obj_id.gsub!('/', '')
+      {
+       'metadata_url' => @metadata_url_generator.theme_url(@type, obj_id),
+       'object_id' => obj_id,
+       'count' => Integer(r['count']['value']),
+       'object_type' => 'theme',
+       'level' => 'NPIS',
+       'object_name' => r['countableName']['value']
+      }
+    end
+  end
   
   private
+
+  def countable_fragment
+    <<-SPARQL.strip_heredoc
+      ?document a bibo:Article ;
+                a ?articleType .
+ 
+      ?document dcterms:subject ?countable .
+      ?countable a skos:Concept .
+    SPARQL
+  end
+  
+  def count_query_string
+    <<-SPARQL.strip_heredoc
+    #{common_prefixes}
+
+    SELECT ?countable ?countableId ?countableName (COUNT(DISTINCT ?document) AS ?count) WHERE {
+       #{primary_count_clause}
+    } GROUP BY ?countable ?countableId ?countableName #{maybe_limit_clause} #{maybe_offset_clause}
+    SPARQL
+  end
+
+  def primary_count_clause
+    count_documents_fragment = <<-SPARQL.strip_heredoc
+      #{countable_fragment}
+      #{optional_countable_clauses}
+    SPARQL
+
+    apply_graph_type_restriction(count_documents_fragment)
+  end
+  
+  def optional_countable_clauses
+    <<-SPARQL.strip_heredoc
+      OPTIONAL { ?countable rdfs:label ?countableName }
+      OPTIONAL { ?countable skos:prefLabel ?countableName }
+      OPTIONAL { ?countable skos:preLabel ?countableName }
+
+      BIND(replace(str(?countable), "(http://aims.fao.org/aos/agrovoc/|http://dbpedia.org/resource/|http://linked-development.org/eldis/themes/)", '') AS ?countableId)
+    SPARQL
+  end
   
   def construct
     <<-ENDCONSTRUCT.strip_heredoc
@@ -52,14 +112,14 @@ class ThemeRepository < AbstractRepository
     <<-SPARQL.strip_heredoc
        WHERE {
            {
-               #{primary_subquery} #{maybe_limit_clause} #{maybe_offset_clause}
+               #{primary_where_clause} #{maybe_limit_clause} #{maybe_offset_clause}
            } 
            #{child_subqueries}
        }
     SPARQL
   end
 
-  def primary_subquery
+  def primary_where_clause #primary_subquery
     primary_clause = case @type
                        when 'eldis' ; eldis_parent_subquery
                        when 'r4d' ; r4d_parent_subquery
@@ -186,15 +246,4 @@ class ThemeRepository < AbstractRepository
       theme
   end
 
-  def totalise_query
-    <<-SPARQL.strip_heredoc
-    #{common_prefixes}
-
-    SELECT (COUNT(?resource) AS ?total) WHERE { 
-       {
-           #{primary_subquery}
-       }
-    }
-    SPARQL
-  end
 end
