@@ -6,20 +6,13 @@ require 'rdf/vocab/bibo'
 
 class DocumentRepository < AbstractRepository
 
-  def totalise_query
+  def primary_where_clause
     base_query_pattern = <<-SPARQL.strip_heredoc
-          ?articles a bibo:Article ;
+          ?resource a bibo:Article ;
             dcterms:title ?title .
     SPARQL
     
-    query_pattern = apply_graph_type_restriction(base_query_pattern)
-
-    <<-TOTALISE.strip_heredoc
-      #{common_prefixes}
-      SELECT (COUNT(?articles) AS ?total) WHERE {
-          #{query_pattern}
-      }
-    TOTALISE
+    apply_graph_type_restriction(base_query_pattern)
   end
 
   private

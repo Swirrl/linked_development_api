@@ -43,7 +43,7 @@ class ResearchOutputRepository < AbstractRepository
     CONSTRUCT
   end
 
-  def primary_subquery
+  def primary_where_clause
     <<-SPARQL.strip_heredoc
         SELECT DISTINCT ?resource ?title ?projectUri ?projectId (COUNT(?output) AS ?numberOfOutputs) WHERE {
           ?resource a dbpo:ResearchProject ;
@@ -64,7 +64,7 @@ class ResearchOutputRepository < AbstractRepository
     <<-SPARQL.strip_heredoc
    {
       {  
-        #{primary_subquery} #{maybe_limit_clause} #{maybe_offset_clause}
+        #{primary_where_clause} #{maybe_limit_clause} #{maybe_offset_clause}
       }
       
       {
@@ -144,18 +144,6 @@ class ResearchOutputRepository < AbstractRepository
 
     project['research_outputs'] = child_research_output if child_research_output.any?
     project
-  end
-
-  def totalise_query
-    <<-SPARQL.strip_heredoc
-    #{common_prefixes}
-
-    SELECT (COUNT(?resource) AS ?total) WHERE { 
-       {
-           #{primary_subquery}
-       }
-    }
-    SPARQL
   end
 
 end

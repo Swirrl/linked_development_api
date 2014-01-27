@@ -24,6 +24,12 @@ class RegionService < AbstractService
     wrap_result(result)
   end
 
+  def count details, opts
+    set_instance_vars details, opts
+    base_url = Rails.application.routes.url_helpers.count_regions_url(@type, {:host => opts[:host], :format => :json})
+    results = super(details, opts)
+    wrap_count_results results, base_url
+  end
 
   def get_all details, opts
     results = do_get_all details, opts

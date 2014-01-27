@@ -65,17 +65,19 @@ describe RegionService do
     let(:service) { ThemeService.new :repository => repository } 
     
     context 'raises error on invalid graph type' do
-      specify { expect { service.count('foo') }.to raise_error InvalidDocumentType }
+      specify { expect { service.count({:type => 'foo'}, {:host => 'test.host'}) }.to raise_error InvalidDocumentType }
     end
 
     it 'delegates to repository' do
-      repository.should_receive(:count).with('r4d')
-      service.count('r4d')
+      repository.should_receive(:count).with('r4d', hash_including(:host))
+      repository.should_receive(:total_results_of_count_query).and_return 10
+
+      service.count({:type => 'r4d'}, {:host => 'test.host'})
     end
 
     context 'metadata' do
       let(:service) { RegionService.build } 
-      let(:results) { service.count('r4d') }
+      let(:results) { service.count({:type => 'r4d'}, {:host => 'test.host'}) }
       
       specify { expect(results['metadata'].class).to be Hash }
     end

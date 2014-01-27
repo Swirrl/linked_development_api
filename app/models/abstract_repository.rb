@@ -62,8 +62,7 @@ class AbstractRepository
     result[0]['total']['value'].to_i
   end
   
-  
-  def count type
+  def count type, opts
     raise StandardError, 'Subclasses should override this method. Where appropriate.'
   end
   

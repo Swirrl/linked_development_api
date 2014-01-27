@@ -142,12 +142,24 @@ describe ThemeService do
     let(:service) { ThemeService.new :repository => repository } 
     
     context 'raises error on invalid graph type' do
-      specify { expect { service.count('foo') }.to raise_error InvalidDocumentType }
+      specify { expect { service.count({:type => 'foo'}, {:host => 'test.host'}) }.to raise_error InvalidDocumentType }
     end
 
-    it 'delegates to repository' do
-the      repository.should_receive(:count).with('r4d')
-      service.count('r4d')
+    describe 'calls repository' do
+      before :each do
+        repository.stub(:count)
+        repository.stub(:total_results_of_count_query).and_return 10
+      end
+
+      it '#count' do
+        expect(repository).to receive(:count).with('r4d', an_instance_of(Hash))
+        service.count({:type =>'r4d'}, {:host => 'test.host'})        
+      end
+
+      it '#total_results_of_count_query' do
+        expect(repository).to receive(:total_results_of_count_query).and_return 10
+        service.count({:type =>'r4d'}, {:host => 'test.host'})
+      end
     end
   end
 end

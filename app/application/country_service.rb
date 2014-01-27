@@ -18,6 +18,13 @@ class CountryService < AbstractService
     wrap_results(results, base_url)
   end
 
+  def count details, opts
+    set_instance_vars details, opts
+    base_url = Rails.application.routes.url_helpers.count_countries_url(@type, {:host => opts[:host], :format => :json})
+    results = super(details, opts)
+    wrap_count_results results, base_url
+  end
+  
   private
 
   def is_eldis_id? res_id
