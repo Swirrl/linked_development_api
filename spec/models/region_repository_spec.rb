@@ -96,8 +96,7 @@ describe RegionRepository do
     context 'all' do
       subject(:response) { repository.count('all', {:host => 'test.host', :limit => 100}) }
       specify { expect(response.class).to be Array }
-      specify { expect(response.count).to be 36 } 
+      specify { expect(response.count).to be 37 } 
     end    
   end
 end
-

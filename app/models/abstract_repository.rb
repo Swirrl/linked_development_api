@@ -77,6 +77,27 @@ class AbstractRepository
       yield r
     end
   end
+
+  # This subquery supports counting documents that don't contain a specific triple pattern
+  def unlinked_documents_subquery not_triple_pattern
+    query_pattern = <<-SPARQL.strip_heredoc
+        ?document a bibo:Article ;
+                  a ?articleType .
+      
+        FILTER NOT EXISTS {
+          #{not_triple_pattern}
+        }
+    SPARQL
+
+    query_pattern = @type == 'all' ? unionise(graphise('r4d', query_pattern), graphise('eldis', query_pattern))
+                                   : {'r4d' => query_pattern, 'eldis' => query_pattern}[@type]
+    
+    <<-SPARQL.strip_heredoc
+      SELECT ?document ("" AS ?countable) ("" AS ?countableId)  ("" AS ?countableName) WHERE {
+         #{query_pattern}
+      }
+    SPARQL
+  end
   
   protected
 
@@ -188,7 +209,7 @@ class AbstractRepository
 
     sub_queries_with_parens.join(' UNION ')
   end
-
+  
   def graphise graph_slug, query
     <<-SPARQL.strip_heredoc
     GRAPH <http://linked-development.org/graph/#{graph_slug}> {  

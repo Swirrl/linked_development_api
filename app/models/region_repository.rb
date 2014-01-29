@@ -41,8 +41,9 @@ class RegionRepository < AbstractRepository
     do_count details, opts do |r|
       obj_id = r['countableId']['value']
       obj_id.gsub!('/', '')
+      meta_url = obj_id.empty? ? '' : @metadata_url_generator.region_url(@type, obj_id)
       {
-       'metadata_url' => @metadata_url_generator.region_url(@type, obj_id),
+       'metadata_url' => meta_url,
        'object_id' => obj_id,
        'count' => Integer(r['count']['value']),
        'object_type' => 'region',
@@ -93,7 +94,7 @@ class RegionRepository < AbstractRepository
       #{subquery}
     SPARQL
 
-    apply_graph_type_restriction(count_documents_fragment)
+    unionise(apply_graph_type_restriction(count_documents_fragment), unlinked_documents_subquery('?document dcterms:coverage ?countable .'))
   end
 
   alias :countable_fragment :primary_count_clause
