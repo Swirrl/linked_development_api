@@ -65,6 +65,18 @@ class AbstractRepository
   def count type, opts
     raise StandardError, 'Subclasses should override this method. Where appropriate.'
   end
+
+  def do_count type, opts, &block
+    @type = type
+    @limit = parse_limit opts
+    @offset = parse_offset opts
+    
+    results  = Tripod::SparqlClient::Query.select(count_query_string)
+
+    results.map do |r|
+      yield r
+    end
+  end
   
   protected
 
@@ -214,19 +226,6 @@ class AbstractRepository
   def local_uri slug
     "http://linked-development.org/dev/#{slug}"
   end
-
-  # Calculate the total results in the query.  Subclasses may need to
-  # override this to generate a correct answer.
-  # def totalise_query query_clauses
-  #   total_q = <<-SPARQL.strip_heredoc
-  #   #{common_prefixes}
-  #   SELECT (COUNT(DISTINCT ?resource) AS ?total) WHERE { 
-  #     #{query_clauses}
-  #   }
-  #   SPARQL
-  #   total_q
-  # end
-
   def totalise_query primary_subquery, count_var="?resource"
     <<-SPARQL.strip_heredoc
     #{common_prefixes}

@@ -22,13 +22,7 @@ class ThemeRepository < AbstractRepository
   end
 
   def count type, opts
-    @type = type
-    @limit = parse_limit opts
-    @offset = parse_offset opts
-    
-    results  = Tripod::SparqlClient::Query.select(count_query_string)
-
-    results.map do |r|
+    do_count type, opts do |r| 
       obj_id = r['countableId']['value']
       obj_id.gsub!('/', '')
       {

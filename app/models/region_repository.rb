@@ -37,7 +37,66 @@ class RegionRepository < AbstractRepository
     process_one_or_many_results(graph).first
   end
 
+  def count details, opts
+    do_count details, opts do |r|
+      obj_id = r['countableId']['value']
+      obj_id.gsub!('/', '')
+      {
+       'metadata_url' => @metadata_url_generator.region_url(@type, obj_id),
+       'object_id' => obj_id,
+       'count' => Integer(r['count']['value']),
+       'object_type' => 'region',
+       'object_name' => r['countableName']['value']
+      }
+    end
+  end
+  
   private
+  
+  def count_query_string
+    q = <<-SPARQL.strip_heredoc
+    #{common_prefixes}
+
+    SELECT ?countable ?countableId ?countableName (COUNT(DISTINCT ?document) AS ?count) WHERE {
+       #{primary_count_clause}
+    } GROUP BY ?countable ?countableId ?countableName #{maybe_limit_clause} #{maybe_offset_clause}
+    SPARQL
+
+    Rails.logger.info q
+    q
+  end
+
+  def primary_count_clause
+    eldis_fragment = <<-SPARQL.strip_heredoc
+      ?countable a fao:geographical_region ;
+                 skos:inScheme <http://linked-development.org/eldis/geography/> ;
+                 rdfs:label ?countableName ;
+                 dcterms:identifier ?countableId .
+    SPARQL
+
+    r4d_fragment = <<-SPARQL.strip_heredoc
+            ?countable a fao:geographical_region ;
+                       fao:codeUN ?countableId ; 
+                       fao:nameList ?countableName .
+      
+      FILTER(lang(?countableName) = 'en')
+    SPARQL
+
+    subquery = @type == 'all' ? unionise(graphise('r4d', r4d_fragment), graphise('eldis', eldis_fragment))
+                              : {'r4d' => r4d_fragment, 'eldis' => eldis_fragment}[@type]
+    
+    count_documents_fragment = <<-SPARQL.strip_heredoc
+      ?document a bibo:Article ;
+                a ?articleType .
+  
+      ?document dcterms:coverage ?countable .
+      #{subquery}
+    SPARQL
+
+    apply_graph_type_restriction(count_documents_fragment)
+  end
+
+  alias :countable_fragment :primary_count_clause
 
   def construct 
     <<-CONSTRUCT.strip_heredoc
@@ -124,7 +183,6 @@ class RegionRepository < AbstractRepository
     region['linked_data_uri'] = parent_uri.to_s
     
     region
-
   end
   
 

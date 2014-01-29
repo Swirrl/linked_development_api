@@ -54,10 +54,50 @@ describe RegionRepository do
         end
        
         describe 'short' do 
-
+          pending
         end
       end
     end
+    
+  end
+
+  describe '#count' do
+    context 'eldis' do
+      subject(:response) { repository.count('eldis', {:host => 'test.host', :limit => 10}) }
+      specify { expect(response.class).to be Array }
+      specify { expect(response.length).to eq(10) }
+      
+      context 'record' do
+        subject(:record) { response.first }
+        specify { expect(record.class).to be Hash }
+        specify { expect(record['object_type']).to eq('region') }        
+        specify { expect(record['object_name'].class).to be String }
+        specify { expect(record['count']).to eq(4309) }
+        specify { expect(record['object_id']).to eq('C30') }
+        specify { expect(record['metadata_url']).to match(/http:\/\/linked-development.org\/openapi\/eldis\/get\/regions\/.*\/full/) }
+      end
+    end
+    
+    context 'r4d' do
+      subject(:response) { repository.count('r4d', {:host => 'test.host', :limit => 3}) }
+      specify { expect(response.class).to be Array }
+      specify { expect(response.length).to eq(3) }
+      
+      context 'record' do
+        subject(:record) { response.first }
+        specify { expect(record.class).to be Hash }
+        specify { expect(record['object_type']).to eq('region') }
+        specify { expect(record['object_name'].class).to be String }
+        specify { expect(record['count']).to be 25 }
+        specify { expect(record['metadata_url']).to match(/http:\/\/linked-development.org\/openapi\/r4d\/get\/regions\/.*\/full/) }
+      end
+    end
+    
+    context 'all' do
+      subject(:response) { repository.count('all', {:host => 'test.host', :limit => 100}) }
+      specify { expect(response.class).to be Array }
+      specify { expect(response.count).to be 36 } 
+    end    
   end
 end
 
