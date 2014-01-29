@@ -25,12 +25,14 @@ class ThemeRepository < AbstractRepository
     do_count type, opts do |r| 
       obj_id = r['countableId']['value']
       obj_id.gsub!('/', '')
+      meta_url = obj_id.empty? ? '' : @metadata_url_generator.theme_url(@type, obj_id)
+      level = obj_id.empty? ? '' : 'NPIS' 
       {
-       'metadata_url' => @metadata_url_generator.theme_url(@type, obj_id),
+       'metadata_url' => meta_url,
        'object_id' => obj_id,
        'count' => Integer(r['count']['value']),
        'object_type' => 'theme',
-       'level' => 'NPIS',
+       'level' => level,
        'object_name' => r['countableName']['value']
       }
     end
@@ -64,7 +66,11 @@ class ThemeRepository < AbstractRepository
       #{optional_countable_clauses}
     SPARQL
 
-    apply_graph_type_restriction(count_documents_fragment)
+    filter_clause = <<-SPARQL.strip_heredoc
+                       ?document dcterms:subject ?countable . ?countable a skos:Concept .
+                    SPARQL
+
+    unionise(unlinked_documents_subquery(filter_clause), apply_graph_type_restriction(count_documents_fragment))
   end
   
   def optional_countable_clauses

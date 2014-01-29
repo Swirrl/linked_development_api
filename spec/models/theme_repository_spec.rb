@@ -271,9 +271,9 @@ describe ThemeRepository do
     end
     
     context 'all' do
-      subject(:response) { repository.count('all', {:host => 'test.host', :limit => 7000}) }
+      subject(:response) { repository.count('all', {:host => 'test.host'}) }
       specify { expect(response.class).to be Array }
-      specify { expect(response.count).to be 6597 } # there are 6597 resources in total
+      specify { expect(response.count).to be 10 }
     end
   end
 end
