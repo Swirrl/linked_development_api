@@ -7,7 +7,6 @@ require 'rdf/vocab/bibo'
 class DocumentRepository < AbstractRepository
 
   include SparqlHelpers
-  include Countable
   include Pageable
   include Getable
   include Totalable

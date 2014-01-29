@@ -1,13 +1,16 @@
 require 'exceptions'
+require_relative './modules/countable/count_by_country'
 
 class CountryRepository < AbstractRepository
 
   include SparqlHelpers
-  include Countable
+  include CountByCountry
   include Pageable
   include Getable
   include Totalable
-  
+
+  private 
+
   def construct 
     <<-CONSTRUCT.strip_heredoc
       CONSTRUCT {
@@ -70,8 +73,6 @@ class CountryRepository < AbstractRepository
     SPARQL
   end
 
-  private 
-
   def get_solutions_from_graph graph
     country_res = @resource_uri ? RDF::URI.new(@resource_uri) : :country_uri
     
@@ -99,7 +100,7 @@ class CountryRepository < AbstractRepository
     country['title'] = current_country.label.value
     country['object_id'] = current_country._object_id.value
     country['iso_two_letter_code'] = current_country.country_code.value
-    country['object_type'] = 'Country' # TODO lower case this?
+    country['object_type'] = 'country' # NOTE this was upper case in the PHP api... Changed it to lower case for consistency.
     country['metadata_url'] = @metadata_url_generator.country_url(current_country.graph_name.value, current_country._object_id.value)
     country['linked_data_uri'] = parent_uri.to_s
     
