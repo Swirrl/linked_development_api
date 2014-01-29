@@ -22,7 +22,7 @@ describe CountryRepository do
           
           specify { expect(document["linked_data_uri"]).to be    == country_A1151 }
           specify { expect(document["object_id"]).to be          == "A1151" }
-          specify { expect(document["object_type"]).to be          == "Country" }
+          specify { expect(document["object_type"]).to be          == "country" }
           specify { expect(document["title"]).to be          == "Nauru" }
           specify { expect(document["metadata_url"]).to be          == "http://linked-development.org/openapi/eldis/get/countries/A1151/full" }
 
@@ -34,7 +34,7 @@ describe CountryRepository do
           
           specify { expect(document["linked_data_uri"]).to be    == country_A1151 }
           specify { expect(document["object_id"]).to be          == "A1151" }
-          specify { expect(document["object_type"]).to be          == "Country" }
+          specify { expect(document["object_type"]).to be          == "country" }
           specify { expect(document["title"]).to be          == "Nauru" }
           specify { expect(document["metadata_url"]).to be          == "http://linked-development.org/openapi/eldis/get/countries/A1151/full" }
         end
@@ -49,7 +49,7 @@ describe CountryRepository do
 
           specify { expect(document["linked_data_uri"]).to be    == "http://www.fao.org/countryprofiles/geoinfo/geopolitical/resource/Turkey" }
           specify { expect(document["object_id"]).to be == "Turkey" }
-          specify { expect(document["object_type"]).to be == "Country" }
+          specify { expect(document["object_type"]).to be == "country" }
           specify { expect(document["title"]).to be == "Turkey" }
           specify { expect(document["metadata_url"]).to be == "http://linked-development.org/openapi/r4d/get/countries/Turkey/full" }
         end
@@ -59,7 +59,7 @@ describe CountryRepository do
 
           specify { expect(document["linked_data_uri"]).to be    == "http://www.fao.org/countryprofiles/geoinfo/geopolitical/resource/Turkey" }
           specify { expect(document["object_id"]).to be == "Turkey" }
-          specify { expect(document["object_type"]).to be == "Country" }
+          specify { expect(document["object_type"]).to be == "country" }
           specify { expect(document["title"]).to be == "Turkey" }
           specify { expect(document["metadata_url"]).to be == "http://linked-development.org/openapi/r4d/get/countries/Turkey/full" }
         end
@@ -137,6 +137,46 @@ describe CountryRepository do
         repository.should_receive(:r4d_subquery)
         repository.get_all({type: 'all', detail: 'full'}, :limit => 10)
       end
+    end
+  end
+
+  describe '#count' do
+    context 'eldis' do
+      subject(:response) { repository.count('eldis', {:host => 'test.host', :limit => 10}) }
+      specify { expect(response.class).to be Array }
+      specify { expect(response.length).to eq(10) }
+      
+      context 'record' do
+        subject(:record) { response.first }
+        specify { expect(record.class).to be Hash }
+        specify { expect(record['object_type']).to eq('country') }        
+        specify { expect(record['object_name'].class).to be String }
+        specify { expect(record['object_id']).to eq('A1149') }
+        specify { expect(record['count'].class).to be Fixnum }
+        specify { expect(record['metadata_url']).to match(/http:\/\/linked-development.org\/openapi\/eldis\/get\/countries\/.*\/full/) }
+      end
+    end
+    
+    context 'r4d' do
+      subject(:response) { repository.count('r4d', {:host => 'test.host', :limit => 3}) }
+      specify { expect(response.class).to be Array }
+      specify { expect(response.length).to eq(3) }
+      
+      context 'record' do
+        subject(:record) { response.first }
+        specify { expect(record.class).to be Hash }
+        specify { expect(record['object_type']).to eq('country') }        
+        specify { expect(record['object_name'].class).to be String }
+        specify { expect(record['object_id']).to eq('Somalia') }
+        specify { expect(record['count'].class).to be Fixnum }
+        specify { expect(record['metadata_url']).to match(/http:\/\/linked-development.org\/openapi\/r4d\/get\/countries\/.*\/full/) }
+      end
+    end
+    
+    context 'all' do
+      subject(:response) { repository.count('all', {:host => 'test.host'}) }
+      specify { expect(response.class).to be Array }
+      specify { expect(response.count).to be 10 }
     end
   end
 end
