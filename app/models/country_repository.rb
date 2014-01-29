@@ -2,6 +2,12 @@ require 'exceptions'
 
 class CountryRepository < AbstractRepository
 
+  include SparqlHelpers
+  include Countable
+  include Pageable
+  include Getable
+  include Totalable
+  
   def construct 
     <<-CONSTRUCT.strip_heredoc
       CONSTRUCT {

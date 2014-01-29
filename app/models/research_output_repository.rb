@@ -2,6 +2,12 @@ require 'exceptions'
 
 class ResearchOutputRepository < AbstractRepository
 
+  include SparqlHelpers
+  include Countable
+  include Pageable
+  include Getable
+  include Totalable
+  
   def get_r4d details, opts={}
     # r4d works off object_id because the URI is not conveniently
     # slugged for us.
@@ -145,5 +151,4 @@ class ResearchOutputRepository < AbstractRepository
     project['research_outputs'] = child_research_output if child_research_output.any?
     project
   end
-
 end

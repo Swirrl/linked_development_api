@@ -3,6 +3,12 @@ require 'rdf/vocab/bibo'
 
 class ThemeRepository < AbstractRepository
 
+  include SparqlHelpers
+  include Countable
+  include Pageable
+  include Getable
+  include Totalable
+ 
   def get_one
     raise StandardError, 'Use either get_eldis or get_r4d to find a single document'
   end
@@ -50,16 +56,6 @@ class ThemeRepository < AbstractRepository
     SPARQL
   end
   
-  def count_query_string
-    <<-SPARQL.strip_heredoc
-    #{common_prefixes}
-
-    SELECT ?countable ?countableId ?countableName (COUNT(DISTINCT ?document) AS ?count) WHERE {
-       #{primary_count_clause}
-    } GROUP BY ?countable ?countableId ?countableName #{maybe_limit_clause} #{maybe_offset_clause}
-    SPARQL
-  end
-
   def primary_count_clause
     count_documents_fragment = <<-SPARQL.strip_heredoc
       #{countable_fragment}
@@ -245,5 +241,4 @@ class ThemeRepository < AbstractRepository
       end
       theme
   end
-
 end

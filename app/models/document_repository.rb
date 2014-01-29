@@ -6,6 +6,14 @@ require 'rdf/vocab/bibo'
 
 class DocumentRepository < AbstractRepository
 
+  include SparqlHelpers
+  include Countable
+  include Pageable
+  include Getable
+  include Totalable
+  
+  private
+
   def primary_where_clause
     base_query_pattern = <<-SPARQL.strip_heredoc
           ?resource a bibo:Article ;
@@ -14,9 +22,7 @@ class DocumentRepository < AbstractRepository
     
     apply_graph_type_restriction(base_query_pattern)
   end
-
-  private
-
+ 
   def get_solutions_from_graph graph
     # don't offset here as this is just a subset of the results from
     # the server

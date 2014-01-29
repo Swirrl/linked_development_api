@@ -2,6 +2,27 @@ require 'exceptions'
 
 class RegionRepository < AbstractRepository
 
+  include SparqlHelpers
+  include Countable
+  include Pageable
+  include Getable
+  include Totalable
+
+  def count details, opts
+    do_count details, opts do |r|
+      obj_id = r['countableId']['value']
+      obj_id.gsub!('/', '')
+      meta_url = obj_id.empty? ? '' : @metadata_url_generator.region_url(@type, obj_id)
+      {
+       'metadata_url' => meta_url,
+       'object_id' => obj_id,
+       'count' => Integer(r['count']['value']),
+       'object_type' => 'region',
+       'object_name' => r['countableName']['value']
+      }
+    end
+  end
+  
   def get_one details
     raise StandardError, 'This class does not support this method use #get_eldis and #get_r4d instead.'
   end
@@ -37,36 +58,8 @@ class RegionRepository < AbstractRepository
     process_one_or_many_results(graph).first
   end
 
-  def count details, opts
-    do_count details, opts do |r|
-      obj_id = r['countableId']['value']
-      obj_id.gsub!('/', '')
-      meta_url = obj_id.empty? ? '' : @metadata_url_generator.region_url(@type, obj_id)
-      {
-       'metadata_url' => meta_url,
-       'object_id' => obj_id,
-       'count' => Integer(r['count']['value']),
-       'object_type' => 'region',
-       'object_name' => r['countableName']['value']
-      }
-    end
-  end
-  
   private
   
-  def count_query_string
-    q = <<-SPARQL.strip_heredoc
-    #{common_prefixes}
-
-    SELECT ?countable ?countableId ?countableName (COUNT(DISTINCT ?document) AS ?count) WHERE {
-       #{primary_count_clause}
-    } GROUP BY ?countable ?countableId ?countableName #{maybe_limit_clause} #{maybe_offset_clause}
-    SPARQL
-
-    Rails.logger.info q
-    q
-  end
-
   def primary_count_clause
     eldis_fragment = <<-SPARQL.strip_heredoc
       ?countable a fao:geographical_region ;
@@ -185,6 +178,4 @@ class RegionRepository < AbstractRepository
     
     region
   end
-  
-
 end
