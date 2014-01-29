@@ -70,10 +70,10 @@ describe RegionRepository do
       context 'record' do
         subject(:record) { response.first }
         specify { expect(record.class).to be Hash }
+        specify { expect(record['object_id']).to match(/C[0-9]+/) }
         specify { expect(record['object_type']).to eq('region') }        
         specify { expect(record['object_name'].class).to be String }
         specify { expect(record['count']).to eq(4309) }
-        specify { expect(record['object_id']).to match(/C[0-9]+/) }
         specify { expect(record['metadata_url']).to match(/http:\/\/linked-development.org\/openapi\/eldis\/get\/regions\/.*\/full/) }
       end
     end

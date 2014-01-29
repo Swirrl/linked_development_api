@@ -28,13 +28,13 @@ module Countable
     end
   end
 
-  def count_query_string
+  def count_query_string extra_vars=''
     q = <<-SPARQL.strip_heredoc
     #{common_prefixes}
 
-    SELECT ?countable ?countableId ?countableName (COUNT(DISTINCT ?document) AS ?count) WHERE {
+    SELECT ?countable ?countableId ?countableName #{extra_vars} (COUNT(DISTINCT ?document) AS ?count) WHERE {
        #{primary_count_clause}
-    } GROUP BY ?countable ?countableId ?countableName #{maybe_limit_clause} #{maybe_offset_clause}
+    } GROUP BY ?countable ?countableId ?countableName #{extra_vars} #{maybe_limit_clause} #{maybe_offset_clause}
     SPARQL
 
     Rails.logger.info q

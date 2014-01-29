@@ -151,8 +151,9 @@ describe CountryRepository do
         specify { expect(record.class).to be Hash }
         specify { expect(record['object_type']).to eq('country') }        
         specify { expect(record['object_name'].class).to be String }
-        specify { expect(record['object_id']).to eq('A1149') }
+        specify { expect(record['object_id'].class).to be String }
         specify { expect(record['count'].class).to be Fixnum }
+        specify { expect(record['iso_two_letter_code']).to match(/[A-Z]{2}/) }        
         specify { expect(record['metadata_url']).to match(/http:\/\/linked-development.org\/openapi\/eldis\/get\/countries\/.*\/full/) }
       end
     end
@@ -167,8 +168,9 @@ describe CountryRepository do
         specify { expect(record.class).to be Hash }
         specify { expect(record['object_type']).to eq('country') }        
         specify { expect(record['object_name'].class).to be String }
-        specify { expect(record['object_id']).to eq('Somalia') }
+        specify { expect(record['object_id'].class).to be String }
         specify { expect(record['count'].class).to be Fixnum }
+        specify { expect(record['iso_two_letter_code']).to match(/[A-Z]{2}/) }        
         specify { expect(record['metadata_url']).to match(/http:\/\/linked-development.org\/openapi\/r4d\/get\/countries\/.*\/full/) }
       end
     end

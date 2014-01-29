@@ -11,12 +11,26 @@ module CountByCountry
        'object_id' => obj_id,
        'count' => Integer(r['count']['value']),
        'object_type' => 'country',
+       'iso_two_letter_code' => r['countryCode']['value'],
        'object_name' => r['countableName']['value']
       }
     end
   end
 
   private
+
+  def count_query_string
+    q = <<-SPARQL.strip_heredoc
+    #{common_prefixes}
+
+    SELECT ?countable ?countableId ?countableName ?countryCode (COUNT(DISTINCT ?document) AS ?count) WHERE {
+       #{primary_count_clause}
+    } GROUP BY ?countable ?countableId ?countableName ?countryCode #{maybe_limit_clause} #{maybe_offset_clause}
+    SPARQL
+
+    Rails.logger.info q
+    q
+  end
 
   def primary_count_clause
     eldis_fragment = <<-SPARQL.strip_heredoc
@@ -38,8 +52,10 @@ module CountByCountry
     count_documents_fragment = <<-SPARQL.strip_heredoc
       ?document a bibo:Article ;
                 a ?articleType .
-  
+
       #{join_clause}
+      ?countable fao:codeISO2 ?countryCode .
+
       #{subquery}
     SPARQL
 

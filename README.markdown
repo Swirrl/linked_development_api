@@ -44,4 +44,7 @@ documented here.
 
 ### Count
 
-- Count now returns counts as JSON integers not strings.
+- count now returns counts as JSON integers not strings for all count routes.
+
+- count/country now returns an object_type of 'country' not 'countries'.
+
