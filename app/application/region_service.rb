@@ -14,7 +14,7 @@ class RegionService < AbstractService
     validate 
     merge_uri_with! details
 
-    if is_eldis_id?(@resource_id)
+    if RegionService.is_eldis_id?(@resource_id)
       result = @repository.get_eldis(details)
     else 
       details.merge!(type: 'r4d')
@@ -41,12 +41,12 @@ class RegionService < AbstractService
 
   private
 
-  def is_eldis_id? region_id
+  def self.is_eldis_id? region_id
     region_id =~ /C[0-9]+/
   end
 
   def convert_id_to_uri region_id
-    is_eldis_id?(region_id) ? "http://linked-development.org/eldis/geography/#{region_id}/" : nil
+    RegionService.is_eldis_id?(region_id) ? "http://linked-development.org/eldis/geography/#{region_id}/" : nil
   end
 
   

@@ -15,14 +15,14 @@ class ThemeService < AbstractService
 
     merge_uri_with! details
 
-    result = if @type == 'eldis' && is_eldis_id?(@resource_id)
+    result = if @type == 'eldis' && ThemeService.is_eldis_id?(@resource_id)
                @repository.get_eldis details
-             elsif @type == 'r4d' && (is_dbpedia_id?(@resource_id) || is_agrovoc_id?(@resource_id))
+             elsif @type == 'r4d' && (ThemeService.is_dbpedia_id?(@resource_id) || ThemeService.is_agrovoc_id?(@resource_id))
                @repository.get_r4d details
              elsif @type == 'all'
-                 if is_dbpedia_id?(@resource_id) || is_agrovoc_id?(@resource_id)
+                 if ThemeService.is_dbpedia_id?(@resource_id) || ThemeService.is_agrovoc_id?(@resource_id)
                    @repository.get_r4d details 
-                 elsif is_eldis_id?(@resource_id)
+                 elsif ThemeService.is_eldis_id?(@resource_id)
                    @repository.get_eldis details 
                  else
                    raise LinkedDevelopmentError, "Unexpected :id format."
@@ -47,29 +47,30 @@ class ThemeService < AbstractService
     results = super(details, opts)
     wrap_count_results results, base_url
   end
+
+  def self.is_eldis_id? identifier
+    identifier =~ /^C\d{1,}$/
+  end
+
+  def self.is_agrovoc_id? identifier
+    identifier =~ /^c_\d{1,}$/
+  end
+
+  def self.is_dbpedia_id? identifier
+    !ThemeService.is_eldis_id?(identifier) && !ThemeService.is_agrovoc_id?(identifier)
+  end
   
   private
 
   # Generate a resource URI for the theme, note this is different from a 'metadata_url'
   def convert_id_to_uri res_id
-    if is_eldis_id? res_id
+    if ThemeService.is_eldis_id? res_id
       "http://linked-development.org/eldis/themes/#{res_id}/"
-    elsif is_agrovoc_id? res_id
+    elsif ThemeService.is_agrovoc_id? res_id
       "http://aims.fao.org/aos/agrovoc/#{res_id}"
-    else is_dbpedia_id? res_id
+    else ThemeService.is_dbpedia_id? res_id
       "http://dbpedia.org/resource/#{res_id}"
     end
   end
 
-  def is_eldis_id? identifier
-    identifier =~ /^C\d{1,}$/
-  end
-
-  def is_agrovoc_id? identifier
-    identifier =~ /^c_\d{1,}$/
-  end
-
-  def is_dbpedia_id? identifier
-    !is_eldis_id?(identifier) && !is_agrovoc_id?(identifier)
-  end
 end

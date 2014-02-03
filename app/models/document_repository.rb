@@ -1,6 +1,6 @@
 require 'rdf/vocab/faogeopol'
 require 'rdf/vocab/bibo'
-
+require 'exceptions'
 # NOTE:
 #  Comments beginning PHP: are copied from the original PHP source
 
@@ -10,13 +10,105 @@ class DocumentRepository < AbstractRepository
   include Pageable
   include Getable
   include Totalable
+
+  def search graph_type, search_parameters, detail, pagination_parameters
+    @type = graph_type
+    @detail = detail
+    @search_parameters = search_parameters
+    @resource_uri = nil
+    @resource_id = nil
+    set_pagination_parameters pagination_parameters
+    q = build_base_query
+    
+    Rails.logger.info q
+    result  = Tripod::SparqlClient::Query.query(q, 'text/turtle')
+    graph   = RDF::Graph.new.from_ttl(result)
+
+    process_one_or_many_results(graph)
+  end
   
   private
 
+  def maybe_filter_on_free_text
+    query_string = @search_parameters[:q]
+    if query_string.present?
+      <<-SPARQL.strip_heredoc
+      {
+        ?resource <http://purl.org/dc/terms/subject> ?searchsubject.
+        ?searchsubject <http://www.w3.org/2000/01/rdf-schema#label> ?search.
+      } UNION {
+        ?resource <http://purl.org/dc/terms/title> ?search.
+      }
+      FILTER(regex(?search,'#{query_string}','i'))
+    SPARQL
+    else
+      ''
+    end
+  end
+
+  # the arguments help ensure we avoid accidental bindings in the case of
+  # a user searching on both region and country.
+  def maybe_filter_on_country_or_region country_code, region_var='?coverage', region_id_var='?countryId'
+    iso_var = "#{region_var}ISO"
+
+    if country_code.present?
+      raise LinkedDevelopmentError, 'ELDIS ids are not supported on R4D datasets' if @type == 'r4d'
+      
+      if CountryService.is_eldis_id?(country_code) || RegionService.is_eldis_id?(country_code)
+        <<-SPARQL.strip_heredoc
+          ?resource dcterms:coverage #{region_var} .
+          #{region_var} dcterms:identifier #{region_id_var} .
+
+          FILTER(regex(#{region_id_var}, "^#{country_code}$", 'i'))
+        SPARQL
+      else
+        country_code = country_code.upcase
+        <<-SPARQL.strip_heredoc
+        ?resource dcterms:coverage #{region_var} .
+        #{region_var} fao:codeISO2 #{iso_var} .
+
+        FILTER(regex(#{iso_var}, "#{country_code}", 'i'))
+        SPARQL
+      end
+    else
+      ''
+    end
+  end
+
+  def maybe_filter_on_theme
+    theme_id = @search_parameters[:theme]
+    if theme_id.present?
+      eldis_subquery = <<-SPARQL.strip_heredoc
+        ?resource dcterms:subject ?subject .
+        ?subject dcterms:identifier ?themeID .
+        FILTER(regex(?themeID, "^#{theme_id}$", 'i'))
+      SPARQL
+
+      if ['all', 'r4d'].include? @type
+        agrovoc_uri = "http://aims.fao.org/aos/agrovoc/#{theme_id}"
+        dbpedia_uri = "http://dbpedia.org/resource/#{theme_id}"
+        
+        r4d_subquery = <<-SPARQL.strip_heredoc
+            VALUES ?subject { <#{agrovoc_uri}> <#{dbpedia_uri}> }
+            ?resource dcterms:subject ?subject .
+            ?subject a skos:Concept .
+        SPARQL
+        unionise(eldis_subquery, r4d_subquery)
+      end
+    else
+      ''
+    end
+  end
+  
   def primary_where_clause
     base_query_pattern = <<-SPARQL.strip_heredoc
           ?resource a bibo:Article ;
             dcterms:title ?title .
+
+      #{maybe_filter_on_country_or_region @search_parameters[:country], '?country', '?countryId' }
+      #{maybe_filter_on_country_or_region @search_parameters[:region], '?region', '?countryId' }
+      #{maybe_filter_on_theme}
+      #{maybe_filter_on_free_text}
     SPARQL
     
     apply_graph_type_restriction(base_query_pattern)
@@ -88,7 +180,6 @@ class DocumentRepository < AbstractRepository
       document["publication_year"]  = Date.parse(publication_date).strftime("%Y")
 
       # PHP: ToDo - Add more publisher details here (waiting for cache to clear)
-
       # PHP: ToDo - get license data into system
       document["license_type"]      = "Not Known"
 
@@ -193,6 +284,14 @@ class DocumentRepository < AbstractRepository
       end
     end
 
+    # hacky... but it works
+    document['country_focus'].uniq! if document['country_focus']
+    document['country_focus_ids'].uniq! if document['country_focus_ids']
+    document['category_theme_ids'].uniq! if document['category_theme_ids']
+    document['category_region_ids'].uniq! if document['category_region_ids']
+    document['category_region_path'].uniq! if document['category_region_path']
+    document['category_region_objects'].uniq! if document['category_region_objects']
+    
     document
   end
 
@@ -238,16 +337,11 @@ ENDCONSTRUCT
 
   # the primary article selection query.  Everything else is optional.
   def primary_selection_query
-    graph_pattern = <<-GP.strip_heredoc
-      #{var_or_iriref(@resource_uri)} a bibo:Article ;
-                dcterms:title ?title .
-GP
-    
     <<-PRIMARY.strip_heredoc
           SELECT DISTINCT * WHERE {
-            #{apply_graph_type_restriction(graph_pattern)}
+            #{apply_graph_type_restriction(primary_where_clause)}
           }
-PRIMARY
+    PRIMARY
   end
 
   def where_clause
@@ -291,7 +385,7 @@ PRIMARY
 
       # Coverage
       OPTIONAL {
-        #{var_or_iriref(@resource_uri)} dcterms:coverage ?coverage.
+        #{var_or_iriref(@resource_uri)} dcterms:coverage ?coverage .
         # Handle for different ways in which coverage may be labelled.
         {
           ?coverage rdfs:label ?coverageTitle
@@ -323,6 +417,7 @@ PRIMARY
       OPTIONAL {
         #{var_or_iriref(@resource_uri)} bibo:uri ?uri
       }
+
     }
   SPARQL
   end

@@ -187,4 +187,7 @@ describe DocumentService do
   # document does not implement count, because every count is related
   # to documents.
 
+  describe '#search' do
+    
+  end
 end

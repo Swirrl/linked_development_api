@@ -33,10 +33,14 @@ module Getable
     @resource_uri = details[:resource_uri]
     @resource_id = details[:id]
     raise StandardError, 'No resource_uri was supplied.' if opts.present? && opts[:raise_on_nil_resource_uri] && @resource_uri.nil? 
+    set_pagination_parameters opts
+  end
+
+  def set_pagination_parameters opts
     @limit = parse_limit opts
     @offset = parse_offset opts
   end
-
+  
   def get_solutions_from_graph graph
     raise StandardError, 'Subclasses should implement the method #get_solutions_from_graph.'
   end

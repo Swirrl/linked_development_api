@@ -61,7 +61,7 @@ class CountryRepository < AbstractRepository
            GRAPH <http://linked-development.org/graph/r4d> {
              VALUES ?graph { "r4d" }
              ?article a bibo:Article ;
-               dcterms:coverage #{var_or_iriref(@resource_uri)} .
+                dcterms:coverage #{var_or_iriref(@resource_uri)} .
            
              #{var_or_iriref(@resource_uri)} fao:nameList ?countrylabel .
              FILTER(lang(?countrylabel) = 'en')
@@ -86,7 +86,6 @@ class CountryRepository < AbstractRepository
       q.pattern [country_res, RDF::DC.identifier, :_object_id]
       q.pattern [country_res, country_code_uri, :country_code]
       q.pattern [country_res, graph_type, :graph_name]
-
     end.limit(@limit)
 
     country_solutions

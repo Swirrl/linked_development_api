@@ -15,7 +15,19 @@ class DocumentService < AbstractService
     base_url = Rails.application.routes.url_helpers.get_all_documents_url(@type, {:host => opts[:host], :format => :json, :detail => @detail})
     wrap_results(results, base_url)
   end
+  
+  def search graph_type, search_parameters, detail, pagination_parameters
+    @type = graph_type
+    @detail = detail
+    set_pagination_parameters pagination_parameters
+    validate
 
+    base_url = Rails.application.routes.url_helpers.search_documents_url(@type, search_parameters.merge({:host => pagination_parameters[:host], :format => :json, :detail => @detail}))
+
+    results = @repository.search(graph_type, search_parameters, detail, pagination_parameters)
+    wrap_results(results, base_url)
+  end
+  
   private 
 
   def convert_id_to_uri doc_id

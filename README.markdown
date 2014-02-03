@@ -30,6 +30,10 @@ documented here.
 
 - TODO
 
+### Documents
+
+- num_results is always an integer value, and never the string "Unknown".
+
 ### Themes
 
 - The original API included a typing mistake in the JSON object
@@ -48,3 +52,4 @@ documented here.
 
 - count/country now returns an object_type of 'country' not 'countries'.
 
+- all count routes now support pagination.

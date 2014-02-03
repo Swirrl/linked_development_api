@@ -35,6 +35,7 @@ LinkedDevelopmentApi::Application.configure do
   config.middleware.use PrettyJsonResponse
 
   Tripod.configure do |config|
+    config.timeout_seconds = 30
     config.query_endpoint   = 'http://localhost:3030/linkeddev-dev/sparql'
     config.data_endpoint   = 'http://localhost:3030/linkeddev-dev/data'
     # For hacking on rails console

@@ -100,4 +100,83 @@ describe DocumentRepository do
       }
     end
   end
+  
+  describe '#search' do
+    let(:default_parameters) { {:host => 'test.host', :limit => 10, :offset => 0}  }
+    
+    describe 'free text search' do
+      context 'r4d' do
+        let(:response) { repository.search('r4d', {:q => 'linked'}, 'full', default_parameters) }
+        specify { expect(response.class).to be Array }
+      end
+      
+      context 'eldis' do
+        let(:response) { repository.search('eldis', {:q => 'linked'}, 'full', default_parameters) }
+        specify { expect(response.class).to be Array }
+      end
+      
+      context 'all' do
+        let(:response) { repository.search('all', {:q => 'linked'}, 'full', default_parameters) }
+        specify { expect(response.class).to be Array }
+      end
+    end
+
+    describe 'theme code search' do
+      context 'r4d' do
+        let(:response) { repository.search('r4d', {:theme => 'C782'}, 'full', default_parameters) }
+      end
+      
+      context 'eldis' do
+        let(:response) { repository.search('eldis', {:theme => 'C782'}, 'full', default_parameters) }
+      end
+      
+      context 'all' do
+        let(:response) { repository.search('all', {:theme => 'C782'}, 'full', default_parameters) }
+      end
+    end
+
+    describe 'country code search' do
+      context 'r4d' do
+        let(:response) { repository.search('r4d', {:country => 'GB'}, 'full', default_parameters) }
+      end
+      
+      context 'eldis' do
+        let(:response) { repository.search('eldis', {:country => 'GB'}, 'full', default_parameters) }
+      end
+      
+      context 'all' do
+        let(:response) { repository.search('all', {:country => 'GB'}, 'full', default_parameters) }
+      end
+    end
+
+    describe 'eldis country id search' do
+      context 'r4d' do
+        specify { expect { repository.search('r4d', {:country => 'A1044'}, 'full', default_parameters) }.to raise_error LinkedDevelopmentError }
+      end
+      
+      context 'eldis' do
+        let(:response) { repository.search('eldis', {:country => 'GB'}, 'full', default_parameters) }
+      end
+      
+      context 'all' do
+        let(:response) { repository.search('all', {:country => 'GB'}, 'full', default_parameters) }
+      end
+    end
+    
+    
+    describe 'combinable search criteria' do
+      context 'r4d' do
+        let(:response) { repository.search('r4d', {:country => 'GB', :theme => 'C782', :q => 'linked'}, 'full', default_parameters) }
+      end
+      
+      context 'eldis' do
+        let(:response) { repository.search('eldis', {:country => 'GB', :theme => 'C782', :q => 'linked'}, 'full', default_parameters) }
+      end
+      
+      context 'all' do
+        let(:response) { repository.search('all', {:country => 'GB', :theme => 'C782', :q => 'linked'}, 'full', default_parameters) }
+      end
+    end
+  end
+
 end

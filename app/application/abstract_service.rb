@@ -24,9 +24,7 @@ class AbstractService
   end
 
   def count details, opts
-
     raise InvalidDocumentType, "Graph #{@type} is not supported for this object type.  Valid graphs are: #{@valid_graphs.join(', ')}." unless graph_valid?
-    
     @repository.count @type, opts
   end
   
@@ -37,12 +35,14 @@ class AbstractService
     @detail = details[:detail]
     @resource_id = details[:id] # allow nil
 
+    set_pagination_parameters opts
+  end
+
+  def set_pagination_parameters opts
     if opts.present?
       @offset = (opts[:offset] || 0).to_i
       @limit = (opts[:limit] || 10).to_i
     end
-    
-    Rails.logger.info "set offset to #{@offset} #{details.inspect}"
   end
   
   def graph_valid? 
@@ -105,16 +105,16 @@ class AbstractService
     next_offset = offset + limit
     prev_offset = offset - limit
 
-    Rails.logger.info("next_offset is #{next_offset} current offset: #{offset} limit: #{limit}")
+    Rails.logger.info("next_offset is #{next_offset} current offset: #{offset} limit: #{limit} previous offset is: #{prev_offset}")
     
     if next_offset < number_of_matched_results
       next_params = params.merge(:start_offset => next_offset).to_query
-      ret['next_page'] = "#{base_url}?#{next_params}"
+      ret['next_page'] = add_params_to_uri(base_url, next_params)
     end
 
-    if prev_offset > 0
+    if prev_offset >= 0
       prev_params = params.merge(:start_offset => prev_offset).to_query
-      ret['prev_page'] = "#{base_url}?#{prev_params}"
+      ret['prev_page'] = add_params_to_uri(base_url, prev_params)
     end
     
     ret
@@ -123,5 +123,17 @@ class AbstractService
   def validate
     raise LinkedDevelopmentError, 'Detail must be either full, short or unspecified (in which case it defaults to short).' unless detail_valid?
     raise InvalidDocumentType, "Graph #{@type} is not supported for this object type.  Valid graphs are: #{@valid_graphs.join(', ')}." unless graph_valid?
+  end
+
+  private
+
+  # Append parameters to a URL string.  Appends parameters properly in
+  # the presence of a '?'
+  def add_params_to_uri uri, params
+    if uri.include? '?'
+      "#{uri}&#{params}"
+    else
+      "#{uri}?#{params}"
+    end
   end
 end
