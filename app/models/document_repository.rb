@@ -52,9 +52,9 @@ class DocumentRepository < AbstractRepository
     iso_var = "#{region_var}ISO"
 
     if country_code.present?
-      raise LinkedDevelopmentError, 'ELDIS ids are not supported on R4D datasets' if @type == 'r4d'
-      
       if CountryService.is_eldis_id?(country_code) || RegionService.is_eldis_id?(country_code)
+        raise LinkedDevelopmentError, 'ELDIS ids are not supported on R4D datasets' if @type == 'r4d'
+
         <<-SPARQL.strip_heredoc
           ?resource dcterms:coverage #{region_var} .
           #{region_var} dcterms:identifier #{region_id_var} .
@@ -102,7 +102,7 @@ class DocumentRepository < AbstractRepository
   
   def primary_where_clause
     base_query_pattern = <<-SPARQL.strip_heredoc
-          ?resource a bibo:Article ;
+          #{var_or_iriref(@resource_uri)} a bibo:Article ;
             dcterms:title ?title .
 
       #{maybe_filter_on_country_or_region @search_parameters[:country], '?country', '?countryId' }
@@ -336,10 +336,11 @@ ENDCONSTRUCT
   end
 
   # the primary article selection query.  Everything else is optional.
+  # Used to calculate counts.
   def primary_selection_query
     <<-PRIMARY.strip_heredoc
           SELECT DISTINCT * WHERE {
-            #{apply_graph_type_restriction(primary_where_clause)}
+            #{primary_where_clause}
           }
     PRIMARY
   end

@@ -122,59 +122,113 @@ describe DocumentRepository do
     end
 
     describe 'theme code search' do
+      let(:eldis_id_pattern) { /C[0-9]+/ }
+      
       context 'r4d' do
-        let(:response) { repository.search('r4d', {:theme => 'C782'}, 'full', default_parameters) }
+        let(:response) { repository.search('r4d', {:theme => 'upgrading'}, 'full', default_parameters) }
+        let(:object) { response.first }
+        let(:child_object) { object['category_theme_array']['theme'].first }
+
+        specify { expect(child_object['object_id'].class).to be String }
       end
       
       context 'eldis' do
         let(:response) { repository.search('eldis', {:theme => 'C782'}, 'full', default_parameters) }
+        let(:object) { response.first }
+        let(:child_object) { object['category_theme_array']['theme'].first }
+
+        specify { expect(child_object['object_id']).to match(eldis_id_pattern) }
       end
       
       context 'all' do
         let(:response) { repository.search('all', {:theme => 'C782'}, 'full', default_parameters) }
+        let(:object) { response.first }
+        let(:child_object) { object['category_theme_array']['theme'].first }
+
+        specify { expect(child_object['object_id']).to match(eldis_id_pattern) }
       end
     end
 
     describe 'country code search' do
+      let(:eldis_id_pattern) { /C[0-9]+/ }
+
       context 'r4d' do
         let(:response) { repository.search('r4d', {:country => 'GB'}, 'full', default_parameters) }
+        let(:object) { response.first }
+        let(:child_object) { object['category_theme_array']['theme'].first }
+
+        specify { expect(child_object['object_id'].class).to be String }
       end
       
       context 'eldis' do
         let(:response) { repository.search('eldis', {:country => 'GB'}, 'full', default_parameters) }
+        let(:object) { response.first }
+        let(:child_object) { object['category_theme_array']['theme'].first }
+
+        specify { expect(child_object['object_id']).to match(eldis_id_pattern) }
       end
       
       context 'all' do
         let(:response) { repository.search('all', {:country => 'GB'}, 'full', default_parameters) }
+
+        let(:object) { response.first }
+        let(:child_object) { object['category_theme_array']['theme'].first }
+
+        specify { expect(child_object['object_id']).to match(eldis_id_pattern) }
       end
     end
 
     describe 'eldis country id search' do
+      let(:eldis_id_pattern) { /C[0-9]+/ }
+
       context 'r4d' do
         specify { expect { repository.search('r4d', {:country => 'A1044'}, 'full', default_parameters) }.to raise_error LinkedDevelopmentError }
       end
       
       context 'eldis' do
         let(:response) { repository.search('eldis', {:country => 'GB'}, 'full', default_parameters) }
+        let(:object) { response.first }
+        let(:child_object) { object['category_theme_array']['theme'].first }
+
+        specify { expect(child_object['object_id']).to match(eldis_id_pattern) }
       end
       
       context 'all' do
         let(:response) { repository.search('all', {:country => 'GB'}, 'full', default_parameters) }
+        let(:object) { response.first }
+        let(:child_object) { object['category_theme_array']['theme'].first }
+
+        specify { expect(child_object['object_id']).to match(eldis_id_pattern) }
       end
     end
     
     
     describe 'combinable search criteria' do
+      let(:eldis_id_pattern) { /C[0-9]+/ }
+
       context 'r4d' do
-        let(:response) { repository.search('r4d', {:country => 'GB', :theme => 'C782', :q => 'linked'}, 'full', default_parameters) }
+        let(:response) { repository.search('r4d', {:country => 'BD', :theme => 'Natural_Resources_Systems_Programme', :q => 'Resources'}, 'full', default_parameters) }
+        let(:object) { response.first }
+        let(:child_object) { object['category_theme_array']['theme'].first }
+
+        specify { expect(child_object['object_id'].class).to be String }
       end
       
       context 'eldis' do
-        let(:response) { repository.search('eldis', {:country => 'GB', :theme => 'C782', :q => 'linked'}, 'full', default_parameters) }
+        let(:response) { repository.search('eldis', {:country => 'GB', :theme => 'C782', :q => 'migration'}, 'full', default_parameters) }
+        let(:object) { response.first }
+        let(:child_object) { object['category_theme_array']['theme'].first }
+
+        specify { expect(child_object['object_id']).to match(eldis_id_pattern) }
+
       end
       
       context 'all' do
-        let(:response) { repository.search('all', {:country => 'GB', :theme => 'C782', :q => 'linked'}, 'full', default_parameters) }
+        let(:response) { repository.search('all', {:country => 'GB', :theme => 'C782', :q => 'development'}, 'full', default_parameters) }
+        let(:object) { response.first }
+        let(:child_object) { object['category_theme_array']['theme'].first }
+
+        specify { expect(child_object['object_id']).to match(eldis_id_pattern) }
       end
     end
   end
