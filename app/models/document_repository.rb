@@ -75,6 +75,24 @@ class DocumentRepository < AbstractRepository
     end
   end
 
+  def maybe_filter_on_iati_identifier
+    iati_id = @search_parameters[:iati]
+
+    if iati_id.present?
+      raise LinkedDevelopmentError, "iati-identifier is only supported on 'r4d' or 'all' datasets" unless %w[r4d all].include? @type
+
+      <<-SPARQL.strip_heredoc
+        ?project a dbpo:Project ;
+                 dcterms:identifier ?iati .
+        FILTER(regex(?iati, "^#{iati_id}$", 'i'))
+
+        ?resource dcterms:isPartOf ?project .
+      SPARQL
+    else
+      ''
+    end
+  end
+  
   def maybe_filter_on_theme
     theme_id = @search_parameters[:theme]
     if theme_id.present?
@@ -117,6 +135,7 @@ class DocumentRepository < AbstractRepository
           #{var_or_iriref(@resource_uri)} a bibo:Article ;
             dcterms:title ?title .
 
+      #{maybe_filter_on_iati_identifier}
       #{maybe_filter_on_country_or_region @search_parameters[:country], '?country', '?countryId' }
       #{maybe_filter_on_country_or_region @search_parameters[:region], '?region', '?countryId' }
       #{maybe_filter_on_theme}

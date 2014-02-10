@@ -103,6 +103,15 @@ describe DocumentRepository do
   
   describe '#search' do
     let(:default_parameters) { {:host => 'test.host', :limit => 10, :offset => 0}  }
+
+    describe 'iati identifier search' do
+      # This one is r4d ONLY
+      context 'r4d' do
+        let(:response) { repository.search('r4d', {'iati-identifier' => 'GB-1-114192'}, 'full', default_parameters) }
+
+        specify { expect(response.class).to be Array }
+      end
+    end
     
     describe 'free text search' do
       context 'r4d' do
