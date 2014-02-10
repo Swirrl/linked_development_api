@@ -84,16 +84,28 @@ class DocumentRepository < AbstractRepository
         FILTER(regex(?themeID, "^#{theme_id}$", 'i'))
       SPARQL
 
-      if ['all', 'r4d'].include? @type
+      name_subquery = <<-SPARQL.strip_heredoc
+        ?resource dcterms:subject ?subject .
+        ?subject skos:prefLabel ?prefLabel .
+        FILTER(regex(?prefLabel, "#{theme_id}", 'i'))
+      SPARQL
+      
+      if 'eldis' == @type
+        unionise(eldis_subquery, name_subquery)
+      elsif ['all', 'r4d'].include? @type
+
+        theme_id = theme_id.gsub ' ', '_' # convert spaces to underscores to conform with our dbpedia uri scheme
+        theme_id = URI.encode(theme_id) 
+        
         agrovoc_uri = "http://aims.fao.org/aos/agrovoc/#{theme_id}"
         dbpedia_uri = "http://dbpedia.org/resource/#{theme_id}"
         
         r4d_subquery = <<-SPARQL.strip_heredoc
-            VALUES ?subject { <#{agrovoc_uri}> <#{dbpedia_uri}> }
-            ?resource dcterms:subject ?subject .
-            ?subject a skos:Concept .
+          VALUES ?subject { <#{agrovoc_uri}> <#{dbpedia_uri}> }
+          ?resource dcterms:subject ?subject .
+          ?subject a skos:Concept .
         SPARQL
-        unionise(eldis_subquery, r4d_subquery)
+        unionise(eldis_subquery, r4d_subquery, name_subquery)
       end
     else
       ''

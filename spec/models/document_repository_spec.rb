@@ -121,7 +121,7 @@ describe DocumentRepository do
       end
     end
 
-    describe 'theme code search' do
+    describe 'theme search' do
       let(:eldis_id_pattern) { /C[0-9]+/ }
       
       context 'r4d' do
@@ -147,6 +147,15 @@ describe DocumentRepository do
 
         specify { expect(child_object['object_id']).to match(eldis_id_pattern) }
       end
+
+      describe 'by name' do
+        let(:response) { repository.search('eldis', {:theme => 'funding education'}, 'full', default_parameters) }
+        let(:object) { response.first }
+        let(:child_object) { object['category_theme_array']['theme'].first }
+
+        specify { expect(child_object['object_id']).to match(eldis_id_pattern) }
+      end
+      
     end
 
     describe 'country code search' do
@@ -202,7 +211,6 @@ describe DocumentRepository do
       end
     end
     
-    
     describe 'combinable search criteria' do
       let(:eldis_id_pattern) { /C[0-9]+/ }
 
@@ -215,7 +223,7 @@ describe DocumentRepository do
       end
       
       context 'eldis' do
-        let(:response) { repository.search('eldis', {:country => 'GB', :theme => 'C782', :q => 'migration'}, 'full', default_parameters) }
+        let(:response) { repository.search('eldis', {:country => 'TW', :theme => 'C782', :q => 'facebook'}, 'full', default_parameters) }
         let(:object) { response.first }
         let(:child_object) { object['category_theme_array']['theme'].first }
 
