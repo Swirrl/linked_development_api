@@ -16,7 +16,7 @@ class ResearchOutputRepository < AbstractRepository
     set_common_details details, opts.merge(raise_error_on_nil_resource_uri: false)
 
     # TODO support this parameter
-    @per_project = opts[:per_project] || 3
+    @per_project = opts[:per_project] || 5
     query_string = build_base_query
     Rails.logger.debug query_string
 
@@ -44,7 +44,6 @@ class ResearchOutputRepository < AbstractRepository
                  dcterms:identifier ?outputId ;
                  dcterms:projectLink ?outputLink ;
                  dcterms:isPartOf ?resource2 .
-        
       }
     CONSTRUCT
   end
@@ -119,6 +118,9 @@ class ResearchOutputRepository < AbstractRepository
 
     parent_uri = current_project.research_project
 
+    project_outputs = run_research_output_query parent_uri
+
+
     project['title'] = current_project.title.value
     project['linked_data_uri'] = parent_uri.to_s
     project['link'] = parent_uri.to_s
@@ -126,29 +128,43 @@ class ResearchOutputRepository < AbstractRepository
     project['object_type'] = 'research_project' 
 
     project['output_count'] = current_project.output_count.value
-
-    bibo_uri = RDF::URI.new('http://purl.org/ontology/bibo/uri')
-    child_solutions = RDF::Query.execute(graph) do |q|
-      q.pattern [:child_uri, RDF::DC.isPartOf, parent_uri]
-      q.pattern [:child_uri, RDF::DC.title, :title]
-      q.pattern [:child_uri, bibo_uri, :child_link]
-      q.pattern [:child_uri, RDF::DC.date, :publish_date]
-      q.pattern [:child_uri, RDF::DC.identifier, :output_id]
-      q.pattern [:child_uri, RDF::DC.projectLink, :outputLink]
-    end
-
-    child_research_output = child_solutions.map do |s|
+    
+    child_research_outputs = project_outputs.map do |s|
       {
-       'title' => s.title.value,
+       'title' => s['outputTitle']['value'],
        'object_type' => 'document',
-       'linked_data_uri' => s.child_uri.to_s,
-       'link' => s.outputLink.to_s,
-       'publication_date' => s.publish_date.to_s,
-       'metadata_url' => @metadata_url_generator.document_url(@type, s.output_id.value)
+       'linked_data_uri' => s['output']['value'],
+       'link' => s['outputLink']['value'],
+       'publication_date' => s['outputDate']['value'].to_s,
+       'metadata_url' => @metadata_url_generator.document_url(@type, s['outputId']['value'])
       }
     end
 
-    project['research_outputs'] = child_research_output if child_research_output.any?
+    project['research_outputs'] = child_research_outputs if child_research_outputs.any?
     project
+  end
+
+  def run_research_output_query resource_uri
+    q = <<-SPARQL.strip_heredoc
+        #{common_prefixes}
+
+        SELECT ?output ?outputTitle ?outputDate ?outputLink ?outputId WHERE {
+
+          ?output  dcterms:isPartOf <#{resource_uri}> ;
+                    dcterms:title ?outputTitle ;
+                    dcterms:date  ?outputDate ;
+                    dcterms:identifier ?oId .
+          
+          BIND(replace(str(?oId), "http://linked-development.org/r4d/output/", '') AS ?outputUriId)
+          BIND(replace(str(?outputUriId), "/", '') AS ?outputId)
+          BIND(CONCAT("http://r4d.dfid.gov.uk/output/", ?outputId, "/") AS ?outputLink)
+        } ORDER BY DESC(?outputDate) #{maybe_per_project_limit} 
+    SPARQL
+
+    Tripod::SparqlClient::Query.select(q)
+  end
+
+  def maybe_per_project_limit
+    @per_project.present? ? "LIMIT #{@per_project}" : ''
   end
 end
