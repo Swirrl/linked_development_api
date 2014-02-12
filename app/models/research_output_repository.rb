@@ -37,13 +37,6 @@ class ResearchOutputRepository < AbstractRepository
                   a dbpo:ResearchProject ;
                   dcterms:identifier ?projectId ;
                   linkeddev:numberOfOutputs ?numberOfOutputs .
-        
-        ?output2 dcterms:title ?outputTitle ;
-                 bibo:uri ?outputLink ;
-                 dcterms:date ?outputDate ;
-                 dcterms:identifier ?outputId ;
-                 dcterms:projectLink ?outputLink ;
-                 dcterms:isPartOf ?resource2 .
       }
     CONSTRUCT
   end
@@ -79,15 +72,6 @@ class ResearchOutputRepository < AbstractRepository
                      dcterms:title ?title ;
                      dcterms:identifier #{var_or_literal(@resource_id, '?projectId')} ;
                      dcterms:identifier ?projectId2 .
-
-          ?output2  dcterms:isPartOf ?resource2 ;
-                    dcterms:title ?outputTitle ;
-                    dcterms:date  ?outputDate ;
-                    dcterms:identifier ?oId .
-          
-          BIND(replace(str(?oId), "http://linked-development.org/r4d/output/", '') AS ?outputUriId)
-          BIND(replace(str(?outputUriId), "/", '') AS ?outputId)
-          BIND(CONCAT("http://r4d.dfid.gov.uk/output/", ?outputId, "/") AS ?outputLink)
         }
       }
     }
@@ -100,7 +84,6 @@ class ResearchOutputRepository < AbstractRepository
     # don't offset here as this is just a subset of the results from the server
 
     numberOfOutputs = RDF::URI.new(local_uri('numberOfOutputs'))
-
     aResearchProject = RDF::URI.new('http://dbpedia.org/ontology/ResearchProject')
     
     research_projects_solutions = RDF::Query.execute(graph) do |q| 
@@ -119,7 +102,6 @@ class ResearchOutputRepository < AbstractRepository
     parent_uri = current_project.research_project
 
     project_outputs = run_research_output_query parent_uri
-
 
     project['title'] = current_project.title.value
     project['linked_data_uri'] = parent_uri.to_s
