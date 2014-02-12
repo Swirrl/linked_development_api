@@ -47,7 +47,7 @@ class ThemeService < AbstractService
     merge_uri_with! details
 
     validate_detail
-    raise InvalidDocumentType, "get_children only supports a graph type of 'eldis' or 'all'." unless 'eldis' == @type
+    raise LinkedDevelopmentError, "get_children only supports a graph type of 'eldis' or 'all'." unless %w[eldis all].include? @type
     
     results = @repository.get_children details, opts
 

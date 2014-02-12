@@ -122,7 +122,7 @@ class AbstractService
 
   def validate
     validate_detail
-    validate
+    validate_graph
   end
 
   def validate_graph

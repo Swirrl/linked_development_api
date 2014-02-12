@@ -164,14 +164,49 @@ describe ThemeService do
   end
 
   context "#get_children" do 
-    describe 'raises error' do 
-      it 'InvalidDocumentType when type is not eldis or all' do 
-        expect { service.get_children({type: 'r4d', id: 'C782', detail: 'short'}, {:host => 'test.host'}) }.to raise_error InvalidDocumentType
-      end
+    let(:repository) do
+      rep = double('repository')
+      rep.stub(:get_children).and_return []
+      rep.stub(:totalise_get_children).and_return 10
+      rep
     end
     
+    let(:service) { ThemeService.new :repository => repository } 
+    
+    describe 'raises error' do 
+      it 'InvalidDocumentType when type is not eldis or all' do 
+        expect { service.get_children({type: 'r4d', id: 'C782', detail: 'short'}, {:host => 'test.host'}) }.to raise_error LinkedDevelopmentError
+      end
+    end
+
+    subject { repository }
+      
     describe 'eldis' do
-      pending
+      it 'receives get_children' do
+        expect(repository).to receive(:get_children) 
+      end
+
+      it 'receives totalise_get_children' do
+        expect(repository).to receive(:totalise_get_children)
+      end
+
+      after :each do
+        service.get_children({type: 'eldis', id: 'C782', detail: 'short'}, {:host => 'test.host'})        
+      end
+    end
+
+    describe 'all' do
+      it 'receives get_children' do
+        expect(repository).to receive(:get_children) 
+      end
+
+      it 'receives totalise_get_children' do
+        expect(repository).to receive(:totalise_get_children)
+      end
+      
+      after :each do
+        service.get_children({type: 'all', id: 'C782', detail: 'short'}, {:host => 'test.host'})        
+      end
     end
   end
 end
