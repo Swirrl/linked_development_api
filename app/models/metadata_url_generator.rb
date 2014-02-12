@@ -29,6 +29,10 @@ class MetadataURLGenerator
     url("/openapi/%s/get_children/themes/%s/full", graph, object_id)
   end
 
+  def linked_url(graph, type, object_id)
+    @base_uri + ('/%s/%s/%s/' % [graph, type, object_id])
+  end
+  
   private
 
   def url(template, graph, object_id)

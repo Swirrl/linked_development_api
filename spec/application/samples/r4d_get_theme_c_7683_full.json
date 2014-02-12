@@ -13,7 +13,7 @@
                 "child": [
                     {
                         "object_name": "screening",
-                        "level": "1",
+                        "level": 0,
                         "object_id": "c_330877",
                         "metadata_url": "http://linked-development.org/openapi/r4d/get/themes/c_330877/full",
                         "linked_data_url": "http://aims.fao.org/aos/agrovoc/c_330877",
@@ -21,7 +21,7 @@
                     },
                     {
                         "object_name": "soil analysis",
-                        "level": "1",
+                        "level": 0,
                         "object_id": "c_7198",
                         "metadata_url": "http://linked-development.org/openapi/r4d/get/themes/c_7198/full",
                         "linked_data_url": "http://aims.fao.org/aos/agrovoc/c_7198",
@@ -29,7 +29,7 @@
                     },
                     {
                         "object_name": "progeny testing",
-                        "level": "1",
+                        "level": 0,
                         "object_id": "c_6216",
                         "metadata_url": "http://linked-development.org/openapi/r4d/get/themes/c_6216/full",
                         "linked_data_url": "http://aims.fao.org/aos/agrovoc/c_6216",
@@ -37,7 +37,7 @@
                     },
                     {
                         "object_name": "seed testing",
-                        "level": "1",
+                        "level": 0,
                         "object_id": "c_6939",
                         "metadata_url": "http://linked-development.org/openapi/r4d/get/themes/c_6939/full",
                         "linked_data_url": "http://aims.fao.org/aos/agrovoc/c_6939",

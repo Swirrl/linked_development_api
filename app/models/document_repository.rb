@@ -244,7 +244,7 @@ class DocumentRepository < AbstractRepository
 
         document["category_theme_array"]["theme"] << {
           "archived"      => "false",   # Original PHP was a hard-coded string
-          "level"         => "unknown", # Original PHP was a hard-coded string
+          "level"         => ThemeRepository.calculate_level(theme_solution['theme'].to_s), 
           "metadata_url"  => @metadata_url_generator.theme_url(site, _object_id),
           "object_id"     => _object_id,
           "object_name"   => theme_solution["object_name"].object,
@@ -405,11 +405,7 @@ ENDCONSTRUCT
             ?subject dcterms:identifier ?subjectID .
         }
         OPTIONAL {
-          ?subjectParent skos:narrower ?subject
-          # Uncomment out the line below to search up the category tree and give all the required steps for building a category path
-          # This is expensive, so unless there are use-cases drawing on the category tree from the API we may want to leave it out
-          # OPTION (transitive, t_max(4), t_in(?subject), t_out(?subjectParent), t_step("step_no") as ?level)
-          .
+          ?subjectParent skos:narrower ?subject .
           ?subjectParent rdfs:label ?subjectParentLabel .
           OPTIONAL { ?subjectParent dcterms:identifier ?subjectParentID . }
         }

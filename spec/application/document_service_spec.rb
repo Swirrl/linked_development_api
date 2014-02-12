@@ -20,22 +20,22 @@ describe DocumentService do
       specify {
         expect(document["category_theme_array"]["theme"]).to match_array(
           [
-            {
-                 "archived"     => "false",
-                 "level"        => "unknown",
-                 "metadata_url" => "http://linked-development.org/openapi/eldis/get/themes/C790/full",
-                 "object_id"    => "C790",
-                 "object_name"  => "ICT for education",
-                 "object_type"  => "theme"
-            },
-            {
-                "archived"      => "false",
-                "level"         => "unknown",
-                "metadata_url"  => "http://linked-development.org/openapi/eldis/get/themes/C782/full",
-                "object_id"     => "C782",
-                "object_name"   => "ICTs for development",
-                "object_type"   => "theme"
-            }
+           {
+            "archived"      => "false",
+            "level"         => 0,
+            "metadata_url"  => "http://linked-development.org/openapi/eldis/get/themes/C782/full",
+            "object_id"     => "C782",
+            "object_name"   => "ICTs for development",
+            "object_type"   => "theme"
+           },
+           {
+            "archived"     => "false",
+            "level"        => 1,
+            "metadata_url" => "http://linked-development.org/openapi/eldis/get/themes/C790/full",
+            "object_id"    => "C790",
+            "object_name"  => "ICT for education",
+            "object_type"  => "theme"
+           }
           ]
         )
       }

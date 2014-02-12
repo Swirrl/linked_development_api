@@ -6,7 +6,8 @@ module CountByTheme
       obj_id = r['countableId']['value']
       obj_id.gsub!('/', '')
       meta_url = obj_id.empty? ? '' : @metadata_url_generator.theme_url(@type, obj_id)
-      level = obj_id.empty? ? '' : 'NPIS' 
+
+      level = ThemeRepository.calculate_level @metadata_url_generator.linked_url(@type, 'themes', obj_id)
       {
        'metadata_url' => meta_url,
        'object_id' => obj_id,

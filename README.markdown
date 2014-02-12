@@ -34,12 +34,20 @@ documented here.
 
 - num_results is always an integer value, and never the string "Unknown".
 
+- level is no longer ever "unknown".  In the case of r4d where levels
+  are not explicitly represented, we return a level of 0, which we
+  also use to refer to an eldis topLevel theme.
+
 ### Themes
 
 - The original API included a typing mistake in the JSON object
   returned by themes, where it used the key "linked\_data\_url" where
   as the rest of the API uses the key "linked\_data\_uri".  This has
   been corrected to use the key "linked\_data\_uri".
+
+- level is no longer ever "unknown".  In the case of r4d where levels
+  are not explicitly represented, we return a level of 0, which we
+  also use to refer to an eldis topLevel theme.
 
 ### Countries
 

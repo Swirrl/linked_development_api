@@ -62,69 +62,69 @@ describe ThemeRepository do
             expect(document["children_object_array"]["child"]).to match_array(
                                                                               [
                                                                                {"object_name"=>"ICTs and governance",
-                                                                                "level"=>"1",
+                                                                                "level"=>1,
                                                                                 "object_id"=>"C787",
                                                                                 "linked_data_uri"=>"http://linked-development.org/eldis/themes/C787/",
                                                                                 "metadata_url"=>"http://linked-development.org/openapi/eldis/get/themes/C787/full"
                                                                                },
                                                                                
                                                                                {"object_name"=>"ICTs and agriculture",
-                                                                                "level"=>"1",
+                                                                                "level"=>1,
                                                                                 "object_id"=>"C1849",
                                                                                 "linked_data_uri"=>"http://linked-development.org/eldis/themes/C1849/",
                                                                                 "metadata_url"=>"http://linked-development.org/openapi/eldis/get/themes/C1849/full"
                                                                                },
                                                                                
                                                                                {"object_name"=>"Government and donor policy",
-                                                                                "level"=>"1",
+                                                                                "level"=>1,
                                                                                 "object_id"=>"C789",
                                                                                 "linked_data_uri"=>"http://linked-development.org/eldis/themes/C789/",
                                                                                 "metadata_url"=>"http://linked-development.org/openapi/eldis/get/themes/C789/full"
                                                                                },
                                                                                
                                                                                {"object_name"=>"Mobile and telecentre innovation",
-                                                                                "level"=>"1",
+                                                                                "level"=>1,
                                                                                 "object_id"=>"C833",
                                                                                 "linked_data_uri"=>"http://linked-development.org/eldis/themes/C833/",
                                                                                 "metadata_url"=>"http://linked-development.org/openapi/eldis/get/themes/C833/full"
                                                                                },
                                                                                
                                                                                {"object_name"=>"ICT gender",
-                                                                                "level"=>"1",
+                                                                                "level"=>1,
                                                                                 "object_id"=>"C826",
                                                                                 "linked_data_uri"=>"http://linked-development.org/eldis/themes/C826/",
                                                                                 "metadata_url"=>"http://linked-development.org/openapi/eldis/get/themes/C826/full"
                                                                                },
                                                                                
                                                                                {"object_name"=>"Manuals and toolkits",
-                                                                                "level"=>"1",
+                                                                                "level"=>1,
                                                                                 "object_id"=>"C1812",
                                                                                 "linked_data_uri"=>"http://linked-development.org/eldis/themes/C1812/",
                                                                                 "metadata_url"=>"http://linked-development.org/openapi/eldis/get/themes/C1812/full"
                                                                                },
                                                                              
                                                                                {"object_name"=>"ICTs and livelihoods",
-                                                                                "level"=>"1",
+                                                                                "level"=>1,
                                                                                 "object_id"=>"C1850",
                                                                                 "linked_data_uri"=>"http://linked-development.org/eldis/themes/C1850/",
                                                                                 "metadata_url"=>"http://linked-development.org/openapi/eldis/get/themes/C1850/full"
                                                                                },
                                                                                
                                                                                {"object_name"=>"Open development",
-                                                                                "level"=>"1",
+                                                                                "level"=>1,
                                                                                 "object_id"=>"C832",
                                                                                 "linked_data_uri"=>"http://linked-development.org/eldis/themes/C832/",
                                                                                 "metadata_url"=>"http://linked-development.org/openapi/eldis/get/themes/C832/full"
                                                                                },
                                                                                
                                                                              {"object_name"=>"ICTs and health",
-                                                                              "level"=>"1",
+                                                                              "level"=>1,
                                                                               "object_id"=>"C1813",
                                                                               "linked_data_uri"=>"http://linked-development.org/eldis/themes/C1813/",
                                                                               "metadata_url"=>"http://linked-development.org/openapi/eldis/get/themes/C1813/full"
                                                                              },
                                                                              {"object_name"=>"ICT for education", 
-                                                                              "level"=>"1", 
+                                                                              "level"=> 1, 
                                                                               "object_id"=>"C790", 
                                                                               "linked_data_uri"=>"http://linked-development.org/eldis/themes/C790/", 
                                                                               "metadata_url"=>"http://linked-development.org/openapi/eldis/get/themes/C790/full"}]
@@ -245,7 +245,7 @@ describe ThemeRepository do
         subject(:record) { response.first }
         specify { expect(record.class).to be Hash }
         specify { expect(record['object_type']).to eq('theme') }        
-        specify { expect(record['level']).to eq('NPIS') }
+        specify { expect(record['level'].class).to be Fixnum }
         specify { expect(record['object_name'].class).to be String }
         specify { expect(record['count']).to eq(9) }
         specify { expect(record['object_id']).to eq('C985') }
@@ -262,7 +262,7 @@ describe ThemeRepository do
         subject(:record) { response.first }
         specify { expect(record.class).to be Hash }
         specify { expect(record['object_type']).to eq('theme') }        
-        specify { expect(record['level']).to eq('NPIS') }
+        specify { expect(record['level']).to eq(0) }
         specify { expect(record['object_name'].class).to be String }
         specify { expect(record['count']).to be 2 }
         specify { expect(record['metadata_url']).to match(/http:\/\/linked-development.org\/openapi\/r4d\/get\/themes\/.*\/full/) }

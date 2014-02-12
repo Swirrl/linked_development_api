@@ -5,6 +5,7 @@ require_relative './modules/theme_get_children'
 
 class ThemeRepository < AbstractRepository
   include SparqlHelpers
+  extend SparqlHelpers
   include Pageable
   include Getable
   include ThemeGetChildren
@@ -182,10 +183,11 @@ class ThemeRepository < AbstractRepository
         end
 
         child_themes = child_solutions.map do |s|
+          child_uri = s.child_uri.to_s
           {'object_name' => s.label.value,
-           'level' => '1', # TODO generate level
+           'level' => ThemeRepository.calculate_level(child_uri), 
            'object_id' => s._object_id.value,
-           'linked_data_uri' => s.child_uri.to_s,
+           'linked_data_uri' => child_uri,
            'metadata_url' => @metadata_url_generator.theme_url(@type, s._object_id.value) }
         end
         
@@ -193,4 +195,24 @@ class ThemeRepository < AbstractRepository
       end
       theme
   end
+
+  def self.calculate_level child_uri
+    level_query = <<-SPARQL.strip_heredoc
+        #{common_prefixes}
+        SELECT ?leafConcept ?topConcept (COUNT(?midConcept) AS ?level) WHERE {
+          GRAPH <http://linked-development.org/graph/eldis> {
+            VALUES ?leafConcept { <#{child_uri}> }
+            ?topConcept skos:topConceptOf <http://linked-development.org/eldis/themes/C2/> .
+
+            ?leafConcept skos:broader* ?midConcept .
+            ?midConcept skos:broader+ ?topConcept .
+          }
+            
+        } GROUP BY ?leafConcept ?topConcept
+    SPARQL
+    Rails.logger.info level_query
+    result = Tripod::SparqlClient::Query.select level_query
+    result[0]['level']['value'].to_i
+  end
+  
 end
