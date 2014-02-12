@@ -8,7 +8,7 @@ class SearchController < ApplicationController
 
     query_parameters = merge_present_params(params)
     
-    if(query_parameters[:q] || query_parameters[:theme] || query_parameters[:country] || query_parameters[:region] || query_parameters[:iati])
+    if(query_parameters[:q] || query_parameters[:theme] || query_parameters[:country] || query_parameters[:region] || query_parameters['iati-identifier'])
       @document = service.search(graph_type, query_parameters, detail,
                                  {host: request.env["HTTP_HOST"], limit: params[:num_results], offset: params[:start_offset]})
       respond_with @document
@@ -26,7 +26,7 @@ class SearchController < ApplicationController
                             :theme => params[:theme],
                             :country => params[:country],
                             :region => params[:region],
-                            :iati => params['iati-identifier'])
+                            'iati-identifier' => params['iati-identifier'])
 
     query_parameters.delete_if { |k, v| v.nil? || v.empty? }
     query_parameters

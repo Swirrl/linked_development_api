@@ -76,7 +76,7 @@ class DocumentRepository < AbstractRepository
   end
 
   def maybe_filter_on_iati_identifier
-    iati_id = @search_parameters[:iati]
+    iati_id = @search_parameters['iati-identifier']
 
     if iati_id.present?
       raise LinkedDevelopmentError, "iati-identifier is only supported on 'r4d' or 'all' datasets" unless %w[r4d all].include? @type
