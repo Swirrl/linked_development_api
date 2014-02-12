@@ -4,6 +4,12 @@ class MetadataURLGenerator
   end
 
   def document_url(graph, object_id)
+    # r4d document identifiers are stored as URL's so convert them to
+    # id slugs and re-urlify them.
+    if object_id =~ /http:\/\/linked-development.org\/r4d\/output\/([0-9]+)\//
+      object_id = Regexp.last_match[1]
+    end
+
     url("/openapi/%s/get/documents/%s/full", graph, object_id)
   end
 
