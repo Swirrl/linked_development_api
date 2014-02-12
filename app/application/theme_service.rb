@@ -1,6 +1,6 @@
 require 'exceptions'
-
 class ThemeService < AbstractService
+
   class << self
     # Convenience factory method to construct a new DocumentService
     # with the usual dependencies
@@ -41,6 +41,27 @@ class ThemeService < AbstractService
     wrap_results results, base_url
   end
 
+  # Only themes currently has this method
+  def get_children details, opts
+    set_instance_vars details, opts
+    merge_uri_with! details
+
+    validate_detail
+    raise InvalidDocumentType, "get_children only supports a graph type of 'eldis' or 'all'." unless 'eldis' == @type
+    
+    results = @repository.get_children details, opts
+
+    base_url = Rails.application.routes.url_helpers.get_children_themes_url(@type, @resource_id, {:host => opts[:host], :format => :json, :detail => @detail })
+    
+    wrap_children_results results, base_url
+  end
+
+  def wrap_children_results results, base_url
+    number_of_matched_results = @repository.totalise_get_children
+    Rails.logger.info number_of_matched_results
+    wrap_count_common(results, number_of_matched_results, base_url)
+  end  
+  
   def count details, opts
     set_instance_vars details, opts
     base_url = Rails.application.routes.url_helpers.count_themes_url(@type, {:host => opts[:host], :format => :json})
@@ -72,5 +93,4 @@ class ThemeService < AbstractService
       "http://dbpedia.org/resource/#{res_id}"
     end
   end
-
 end

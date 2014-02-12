@@ -26,6 +26,8 @@ LinkedDevelopmentApi::Application.routes.draw do
     get '/:graph/count/documents/region', to: 'count#regions', as: :count_regions
     get '/:graph/count/documents/country', to: 'count#countries', as: :count_countries
 
+    get '/:graph/get_children/themes/:id(/:detail)', to: 'get_children#themes', as: :get_children_themes
+    
     # All searches are handled by this route.
     get '/:graph/search/documents(/:detail)', to: 'search#search', as: :search_documents
     

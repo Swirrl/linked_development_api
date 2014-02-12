@@ -162,4 +162,16 @@ describe ThemeService do
       end
     end
   end
+
+  context "#get_children" do 
+    describe 'raises error' do 
+      it 'InvalidDocumentType when type is not eldis or all' do 
+        expect { service.get_children({type: 'r4d', id: 'C782', detail: 'short'}, {:host => 'test.host'}) }.to raise_error InvalidDocumentType
+      end
+    end
+    
+    describe 'eldis' do
+      pending
+    end
+  end
 end

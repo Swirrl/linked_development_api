@@ -1,12 +1,13 @@
 require 'rdf/vocab/faogeopol'
 require 'rdf/vocab/bibo'
 require_relative './modules/countable/count_by_theme'
+require_relative './modules/theme_get_children'
 
 class ThemeRepository < AbstractRepository
-
   include SparqlHelpers
   include Pageable
   include Getable
+  include ThemeGetChildren
   include Totalable
   include CountByTheme
   
@@ -66,7 +67,7 @@ class ThemeRepository < AbstractRepository
     SPARQL
   end
 
-  def primary_where_clause #primary_subquery
+  def primary_where_clause
     primary_clause = case @type
                        when 'eldis' ; eldis_parent_subquery
                        when 'r4d' ; r4d_parent_subquery

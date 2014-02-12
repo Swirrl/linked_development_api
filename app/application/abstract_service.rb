@@ -121,10 +121,18 @@ class AbstractService
   end
 
   def validate
-    raise LinkedDevelopmentError, 'Detail must be either full, short or unspecified (in which case it defaults to short).' unless detail_valid?
-    raise InvalidDocumentType, "Graph #{@type} is not supported for this object type.  Valid graphs are: #{@valid_graphs.join(', ')}." unless graph_valid?
+    validate_detail
+    validate_graph
   end
 
+  def validate_graph
+    raise InvalidDocumentType, "Graph #{@type} is not supported for this object type.  Valid graphs are: #{@valid_graphs.join(', ')}." unless graph_valid?    
+  end
+  
+  def validate_detail
+    raise LinkedDevelopmentError, 'Detail must be either full, short or unspecified (in which case it defaults to short).' unless detail_valid?
+  end
+  
   private
 
   # Append parameters to a URL string.  Appends parameters properly in
