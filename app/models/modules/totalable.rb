@@ -9,10 +9,6 @@ module Totalable
 
   protected
   
-  def totalise_query query_clauses
-    raise StandardError, 'Subclasses should implement this #totalise_query method to support #total_results'
-  end
-
   def totalise_query primary_subquery, count_var="?resource"
     <<-SPARQL.strip_heredoc
     #{common_prefixes}
