@@ -28,7 +28,7 @@ module CountByCountry
     } GROUP BY ?countable ?countableId ?countableName ?countryCode #{maybe_limit_clause} #{maybe_offset_clause}
     SPARQL
 
-    Rails.logger.info q
+    Rails.logger.debug q
     q
   end
 

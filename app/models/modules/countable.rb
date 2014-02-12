@@ -8,7 +8,7 @@ module Countable
 
     q_string = totalise_query(apply_graph_type_restriction(countable_fragment), "?countable")
 
-    Rails.logger.info q_string
+    Rails.logger.debug q_string
 
     result = Tripod::SparqlClient::Query.select q_string
     result[0]['total']['value'].to_i
@@ -37,7 +37,7 @@ module Countable
     } GROUP BY ?countable ?countableId ?countableName #{extra_vars} #{maybe_limit_clause} #{maybe_offset_clause}
     SPARQL
 
-    Rails.logger.info q
+    Rails.logger.debug q
     q
   end
 

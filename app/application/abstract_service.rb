@@ -77,7 +77,7 @@ class AbstractService
 
   def wrap_count_results results, base_url
     number_of_matched_results = @repository.total_results_of_count_query
-    Rails.logger.info "num matched: #{number_of_matched_results}"
+    Rails.logger.debug "num matched: #{number_of_matched_results}"
     wrap_count_common(results, number_of_matched_results, base_url)
   end
 
@@ -105,7 +105,7 @@ class AbstractService
     next_offset = offset + limit
     prev_offset = offset - limit
 
-    Rails.logger.info("next_offset is #{next_offset} current offset: #{offset} limit: #{limit} previous offset is: #{prev_offset}")
+    Rails.logger.debug("next_offset is #{next_offset} current offset: #{offset} limit: #{limit} previous offset is: #{prev_offset}")
     
     if next_offset < number_of_matched_results
       next_params = params.merge(:start_offset => next_offset).to_query
@@ -122,7 +122,7 @@ class AbstractService
 
   def validate
     validate_detail
-    validate_graph
+    validate
   end
 
   def validate_graph

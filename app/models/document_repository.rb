@@ -20,7 +20,7 @@ class DocumentRepository < AbstractRepository
     set_pagination_parameters pagination_parameters
     q = build_base_query
     
-    Rails.logger.info q
+    Rails.logger.debug q
     result  = Tripod::SparqlClient::Query.query(q, 'text/turtle')
     graph   = RDF::Graph.new.from_ttl(result)
 

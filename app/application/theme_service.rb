@@ -58,7 +58,7 @@ class ThemeService < AbstractService
 
   def wrap_children_results results, base_url
     number_of_matched_results = @repository.totalise_get_children
-    Rails.logger.info number_of_matched_results
+    Rails.logger.debug number_of_matched_results
     wrap_count_common(results, number_of_matched_results, base_url)
   end  
   
