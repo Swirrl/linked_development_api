@@ -279,22 +279,40 @@ describe ThemeRepository do
   describe '#get_children' do
 
     context 'eldis' do
-      subject(:response) { repository.get_children({type: 'eldis', resource_uri: 'http://linked-development.org/eldis/themes/C782/', detail: 'full'}) }
-      specify { expect(response.class).to be Array }
-      specify { expect(response.count).to be 10 }
+      context 'full' do
+        subject(:response) { repository.get_children({type: 'eldis', resource_uri: 'http://linked-development.org/eldis/themes/C782/', detail: 'full'}) }
+        specify { expect(response.class).to be Array }
+        specify { expect(response.count).to be 10 }
 
-      context 'record' do
-        subject(:record) { response.first }
-        specify { expect(record.class).to be Hash }
-        specify { expect(record['linked_data_uri']).to match(/http:\/\/linked-development.org\/eldis\/themes\/C[0-9]+\//) }
-        specify { expect(record['object_id'].class).to be String }
-        specify { expect(record['object_type']).to eq('theme') }        
-        specify { expect(record['title'].class).to be String }
-        specify { expect(record['site']).to eq('eldis') }        
-        specify { expect(record['name'].class).to be String }
-        specify { expect(record['children_url'].class).to be String }
-        specify { expect(record['metadata_url']).to match(/http:\/\/linked-development.org\/openapi\/eldis\/get\/themes\/.*\/full/) }
+        context 'record' do
+          subject(:record) { response.first }
+          specify { expect(record.class).to be Hash }
+          specify { expect(record['linked_data_uri']).to match(/http:\/\/linked-development.org\/eldis\/themes\/C[0-9]+\//) }
+          specify { expect(record['object_id'].class).to be String }
+          specify { expect(record['object_type']).to eq('theme') }        
+          specify { expect(record['title'].class).to be String }
+          specify { expect(record['site']).to eq('eldis') }        
+          specify { expect(record['name'].class).to be String }
+          specify { expect(record['children_url'].class).to be String }
+          specify { expect(record['metadata_url']).to match(/http:\/\/linked-development.org\/openapi\/eldis\/get\/themes\/.*\/full/) }
+        end
       end
+
+      context 'short' do
+        subject(:response) { repository.get_children({type: 'eldis', resource_uri: 'http://linked-development.org/eldis/themes/C782/', detail: 'short'}) }
+        specify { expect(response.class).to be Array }
+        specify { expect(response.count).to be 10 }
+
+        context 'record' do
+          subject(:record) { response.first }
+          specify { expect(record.class).to be Hash }
+          specify { expect(record['linked_data_uri']).to match(/http:\/\/linked-development.org\/eldis\/themes\/C[0-9]+\//) }
+          specify { expect(record['object_id'].class).to be String }
+          specify { expect(record['object_type']).to eq('theme') }        
+          specify { expect(record['title'].class).to be String }
+          specify { expect(record['metadata_url']).to match(/http:\/\/linked-development.org\/openapi\/eldis\/get\/themes\/.*\/full/) }
+        end
+      end      
     end
   end
 end

@@ -67,19 +67,24 @@ module ThemeGetChildren
   end
 
   def process_each_child graph, child, parent_obj
-    {
-     'linked_data_uri' => child.child_uri.to_s,
-     'object_id' => child._object_id.value,
-     'object_type' => 'theme',
-     'title' => child.label.value,
-     'metadata_url' => @metadata_url_generator.theme_url(@type, child._object_id.value),
-     'site' => 'eldis',
-     'children_url' => @metadata_url_generator.children_url(@type, child._object_id.value),
-     'name' => child.label.value,     
-     'parent_object_array' => {
-                               'parent' => [parent_obj]
-                              }
-    }
+    child_object = {
+             'linked_data_uri' => child.child_uri.to_s,
+             'object_id' => child._object_id.value,
+             'object_type' => 'theme',
+             'title' => child.label.value,
+             'metadata_url' => @metadata_url_generator.theme_url(@type, child._object_id.value),
+            }
+
+    if @detail == 'full'
+      child_object['site'] = 'eldis' 
+      child_object['children_url'] = @metadata_url_generator.children_url(@type, child._object_id.value) 
+      child_object['name'] = child.label.value
+      child_object['parent_object_array'] = {
+                                      'parent' => [parent_obj]
+                                     }
+    end
+    
+    child_object
   end
 
   def get_children_primary_query
