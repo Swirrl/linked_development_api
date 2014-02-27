@@ -34,8 +34,13 @@ LinkedDevelopmentApi::Application.configure do
   config.active_support.deprecation = :stderr
 
   Tripod.configure do |config|
-    config.query_endpoint   = 'http://localhost:3030/linkeddev-test/sparql'
-    config.update_endpoint  = 'http://localhost:3030/linkeddev-test/update'
-    config.data_endpoint  = 'http://localhost:3030/linkeddev-test/data'
+    # config.query_endpoint   = 'http://localhost:3030/linkeddev-test/sparql'
+    # config.update_endpoint  = 'http://localhost:3030/linkeddev-test/update'
+    # config.data_endpoint  = 'http://localhost:3030/linkeddev-test/data'
+
+    config.query_endpoint = 'http://linked-development-pmd.dev/sparql' #'http://localhost:3030/junk/sparql'
+    config.data_endpoint = 'http://localhost:3030/junk/data'
+    # For hacking on rails console
+    config.update_endpoint = 'http://localhost:3030/junk/update'
   end
 end

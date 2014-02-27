@@ -12,7 +12,7 @@ LinkedDevelopmentApi::Application.configure do
   # Show full error reports and disable caching
   #config.consider_all_requests_local       = true
   config.consider_all_requests_local = false
-  
+
   config.action_controller.perform_caching = false
 
   # Don't care if the mailer can't send
@@ -35,10 +35,16 @@ LinkedDevelopmentApi::Application.configure do
   config.middleware.use PrettyJsonResponse
 
   Tripod.configure do |config|
-    config.timeout_seconds = 30
-    config.query_endpoint   = 'http://localhost:3030/linkeddev-dev/sparql'
-    config.data_endpoint   = 'http://localhost:3030/linkeddev-dev/data'
+    config.timeout_seconds = 60
+    #config.query_endpoint   = 'http://localhost:3030/linkeddev-dev/sparql'
+    #config.data_endpoint   = 'http://localhost:3030/linkeddev-dev/data'
     # For hacking on rails console
-    config.update_endpoint  = 'http://localhost:3030/linkeddev-dev/update'
+    #config.update_endpoint  = 'http://localhost:3030/linkeddev-dev/update'
+
+
+    config.query_endpoint = 'http://linked-development-pmd.dev/sparql' #'http://localhost:3030/junk/sparql'
+    config.data_endpoint = 'http://localhost:3030/junk/data'
+    # For hacking on rails console
+    config.update_endpoint = 'http://localhost:3030/junk/update'
   end
 end
