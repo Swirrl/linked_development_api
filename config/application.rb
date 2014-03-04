@@ -24,8 +24,8 @@ module LinkedDevelopmentApi
     # Custom directories with classes and modules you want to be autoloadable.
 
     config.autoload_paths += Dir[ Rails.root.join('app', 'models', '**/') ]
-    config.autoload_paths += Dir[ Rails.root.join('application', '**/') ] 
-    
+    config.autoload_paths += Dir[ Rails.root.join('application', '**/') ]
+
     # Only load the plugins named here, in the order given (default is alphabetical).
     # :all can be used as a placeholder for all plugins not explicitly named.
     # config.plugins = [ :exception_notification, :ssl_requirement, :all ]
@@ -70,4 +70,6 @@ module LinkedDevelopmentApi
     # Route exceptions to our ErrorsController
     config.exceptions_app = self.routes
   end
+
+  CRAWL_IN_PROGRESS_FILE_PATH = File.join('/', 'tmp', 'cabi-crawl-in-progress')
 end

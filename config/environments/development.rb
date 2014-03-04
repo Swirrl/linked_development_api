@@ -24,7 +24,6 @@ LinkedDevelopmentApi::Application.configure do
   # Only use best-standards-support built into browsers
   config.action_dispatch.best_standards_support = :builtin
 
-
   # Do not compress assets
   config.assets.compress = false
 
@@ -36,13 +35,13 @@ LinkedDevelopmentApi::Application.configure do
 
   Tripod.configure do |config|
     config.timeout_seconds = 60
-    #config.query_endpoint   = 'http://localhost:3030/linkeddev-dev/sparql'
-    #config.data_endpoint   = 'http://localhost:3030/linkeddev-dev/data'
+    config.query_endpoint   = 'http://localhost:3030/linkeddev-dev/sparql'
+    config.data_endpoint   = 'http://localhost:3030/linkeddev-dev/data'
     # For hacking on rails console
-    #config.update_endpoint  = 'http://localhost:3030/linkeddev-dev/update'
+    config.update_endpoint  = 'http://localhost:3030/linkeddev-dev/update'
 
 
-    config.query_endpoint = 'http://linked-development-pmd.dev/sparql' #'http://localhost:3030/junk/sparql'
+    #config.query_endpoint = 'http://linked-development-pmd.dev/sparql' #'http://localhost:3030/junk/sparql'
     config.data_endpoint = 'http://localhost:3030/junk/data'
     # For hacking on rails console
     config.update_endpoint = 'http://localhost:3030/junk/update'
