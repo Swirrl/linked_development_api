@@ -1,6 +1,6 @@
 require 'exceptions'
 
-class CountryService < AbstractService 
+class CountryService < AbstractService
 
   class << self
     # Convenience factory method to construct a new DocumentService
@@ -13,24 +13,24 @@ class CountryService < AbstractService
   def get_all details, opts
     results = do_get_all details, opts
 
-    base_url = Rails.application.routes.url_helpers.get_all_countries_url(@type, {:host => opts[:host], :format => :json, :detail => @detail})
+    base_url = Rails.application.routes.url_helpers.get_all_countries_url(@type, {:host => opts[:host], :format => @format, :detail => @detail})
 
     wrap_results(results, base_url)
   end
 
   def count details, opts
     set_instance_vars details, opts
-    base_url = Rails.application.routes.url_helpers.count_countries_url(@type, {:host => opts[:host], :format => :json})
+    base_url = Rails.application.routes.url_helpers.count_countries_url(@type, {:host => opts[:host], :format => @format})
     results = super(details, opts)
     wrap_count_results results, base_url
   end
-  
+
   private
 
   def self.is_eldis_id? res_id
     res_id =~ /^A\d{1,}$/
   end
-  
+
   def convert_id_to_uri res_id
     if CountryService.is_eldis_id? res_id
       "http://linked-development.org/eldis/geography/#{res_id}/"

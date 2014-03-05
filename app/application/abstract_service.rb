@@ -1,7 +1,7 @@
 class AbstractService
 
   attr_reader :valid_graphs
-  
+
   def initialize(dependencies = { })
     @repository = dependencies.fetch(:repository)
     @valid_graphs = %w[all eldis r4d]
@@ -9,9 +9,9 @@ class AbstractService
 
   def get details
     set_instance_vars details
-    validate 
+    validate
     merge_uri_with! details
-    
+
     result = @repository.get_one(details)
 
     wrap_result(result)
@@ -19,7 +19,7 @@ class AbstractService
 
   def do_get_all details, opts
     set_instance_vars details, opts
-    validate 
+    validate
     @repository.get_all details, opts
   end
 
@@ -27,7 +27,7 @@ class AbstractService
     raise InvalidDocumentType, "Graph #{@type} is not supported for this object type.  Valid graphs are: #{@valid_graphs.join(', ')}." unless graph_valid?
     @repository.count @type, opts
   end
-  
+
   protected
 
   def set_instance_vars details, opts=nil
@@ -40,12 +40,13 @@ class AbstractService
 
   def set_pagination_parameters opts
     if opts.present?
+      @format = opts[:format]
       @offset = (opts[:offset] || 0).to_i
       @limit = (opts[:limit] || 10).to_i
     end
   end
-  
-  def graph_valid? 
+
+  def graph_valid?
     valid_graphs.include?(@type)
   end
 
@@ -61,11 +62,11 @@ class AbstractService
   end
 
   # Note to use this Subclasses must implement #convert_id_to_uri.
-  def merge_uri_with! details 
+  def merge_uri_with! details
     resource_uri = convert_id_to_uri(@resource_id)
     details.merge! :resource_uri => resource_uri
   end
-  
+
   def convert_id_to_uri id
     raise StandardError, 'Override #convert_id_to_uri in subclass to use #merge_uri_with'
   end
@@ -90,7 +91,7 @@ class AbstractService
       'metadata' => metadata(base_url, number_of_matched_results)
     }
   end
-    
+
   def metadata base_url, number_of_matched_results
     offset = @offset.present? ? Integer(@offset) : 0
     limit = @limit.present? ? Integer(@limit) : 10
@@ -106,7 +107,7 @@ class AbstractService
     prev_offset = offset - limit
 
     Rails.logger.debug("next_offset is #{next_offset} current offset: #{offset} limit: #{limit} previous offset is: #{prev_offset}")
-    
+
     if next_offset < number_of_matched_results
       next_params = params.merge(:start_offset => next_offset).to_query
       ret['next_page'] = add_params_to_uri(base_url, next_params)
@@ -116,7 +117,7 @@ class AbstractService
       prev_params = params.merge(:start_offset => prev_offset).to_query
       ret['prev_page'] = add_params_to_uri(base_url, prev_params)
     end
-    
+
     ret
   end
 
@@ -126,13 +127,13 @@ class AbstractService
   end
 
   def validate_graph
-    raise InvalidDocumentType, "Graph #{@type} is not supported for this object type.  Valid graphs are: #{@valid_graphs.join(', ')}." unless graph_valid?    
+    raise InvalidDocumentType, "Graph #{@type} is not supported for this object type.  Valid graphs are: #{@valid_graphs.join(', ')}." unless graph_valid?
   end
-  
+
   def validate_detail
     raise LinkedDevelopmentError, 'Detail must be either full, short or unspecified (in which case it defaults to short).' unless detail_valid?
   end
-  
+
   private
 
   # Append parameters to a URL string.  Appends parameters properly in

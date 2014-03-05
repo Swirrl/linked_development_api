@@ -20,9 +20,9 @@ class GetAllController < ApplicationController
 
   def get_all_from klass
     service = klass.build
-    @document = service.get_all({type: params[:graph], detail: params[:detail]}, 
-                                host: request.env["HTTP_HOST"], limit: params[:num_results], offset: params[:start_offset])
-    
+    @document = service.get_all({type: params[:graph], detail: params[:detail]},
+                                host: request.env["HTTP_HOST"], limit: params[:num_results], offset: params[:start_offset], format: params[:format])
+
     respond_with @document
   end
 

@@ -11,24 +11,24 @@ class DocumentService < AbstractService
 
   def get_all details, opts
     results = do_get_all details, opts
-    
-    base_url = Rails.application.routes.url_helpers.get_all_documents_url(@type, {:host => opts[:host], :format => :json, :detail => @detail})
+
+    base_url = Rails.application.routes.url_helpers.get_all_documents_url(@type, {:host => opts[:host], :format => @format, :detail => @detail})
     wrap_results(results, base_url)
   end
-  
+
   def search graph_type, search_parameters, detail, pagination_parameters
     @type = graph_type
     @detail = detail
     set_pagination_parameters pagination_parameters
     validate
 
-    base_url = Rails.application.routes.url_helpers.search_documents_url(@type, search_parameters.merge({:host => pagination_parameters[:host], :format => :json, :detail => @detail}))
+    base_url = Rails.application.routes.url_helpers.search_documents_url(@type, search_parameters.merge({:host => pagination_parameters[:host], :format => @format, :detail => @detail}))
 
     results = @repository.search(graph_type, search_parameters, detail, pagination_parameters)
     wrap_results(results, base_url)
   end
-  
-  private 
+
+  private
 
   def convert_id_to_uri doc_id
     # From the original GetQueryBuilder->createQuery
@@ -47,7 +47,7 @@ class DocumentService < AbstractService
       "http://linked-development.org/r4d/output/#{doc_id}/"
     end
   end
-  
+
   def is_eldis_id? document_id
     document_id =~ /^A/
   end

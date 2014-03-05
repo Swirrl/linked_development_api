@@ -21,9 +21,9 @@ class ThemeService < AbstractService
                @repository.get_r4d details
              elsif @type == 'all'
                  if ThemeService.is_dbpedia_id?(@resource_id) || ThemeService.is_agrovoc_id?(@resource_id)
-                   @repository.get_r4d details 
+                   @repository.get_r4d details
                  elsif ThemeService.is_eldis_id?(@resource_id)
-                   @repository.get_eldis details 
+                   @repository.get_eldis details
                  else
                    raise LinkedDevelopmentError, "Unexpected :id format."
                  end
@@ -37,7 +37,7 @@ class ThemeService < AbstractService
   def get_all details, opts
     results = do_get_all details, opts
 
-    base_url = Rails.application.routes.url_helpers.get_all_themes_url(@type, {:host => opts[:host], :format => :json, :detail => @detail})
+    base_url = Rails.application.routes.url_helpers.get_all_themes_url(@type, {:host => opts[:host], :format => @format, :detail => @detail})
     wrap_results results, base_url
   end
 
@@ -48,11 +48,11 @@ class ThemeService < AbstractService
 
     validate_detail
     raise LinkedDevelopmentError, "get_children only supports a graph type of 'eldis' or 'all'." unless %w[eldis all].include? @type
-    
+
     results = @repository.get_children details, opts
 
-    base_url = Rails.application.routes.url_helpers.get_children_themes_url(@type, @resource_id, {:host => opts[:host], :format => :json, :detail => @detail })
-    
+    base_url = Rails.application.routes.url_helpers.get_children_themes_url(@type, @resource_id, {:host => opts[:host], :format => @format, :detail => @detail })
+
     wrap_children_results results, base_url
   end
 
@@ -60,11 +60,11 @@ class ThemeService < AbstractService
     number_of_matched_results = @repository.totalise_get_children
     Rails.logger.debug number_of_matched_results
     wrap_count_common(results, number_of_matched_results, base_url)
-  end  
-  
+  end
+
   def count details, opts
     set_instance_vars details, opts
-    base_url = Rails.application.routes.url_helpers.count_themes_url(@type, {:host => opts[:host], :format => :json})
+    base_url = Rails.application.routes.url_helpers.count_themes_url(@type, {:host => opts[:host], :format => @format})
     results = super(details, opts)
     wrap_count_results results, base_url
   end
@@ -80,7 +80,7 @@ class ThemeService < AbstractService
   def self.is_dbpedia_id? identifier
     !ThemeService.is_eldis_id?(identifier) && !ThemeService.is_agrovoc_id?(identifier)
   end
-  
+
   private
 
   # Generate a resource URI for the theme, note this is different from a 'metadata_url'

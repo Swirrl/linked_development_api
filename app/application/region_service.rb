@@ -11,12 +11,12 @@ class RegionService < AbstractService
 
   def get details
     set_instance_vars details
-    validate 
+    validate
     merge_uri_with! details
 
     if RegionService.is_eldis_id?(@resource_id)
       result = @repository.get_eldis(details)
-    else 
+    else
       details.merge!(type: 'r4d')
       result = @repository.get_r4d(details)
     end
@@ -26,15 +26,15 @@ class RegionService < AbstractService
 
   def count details, opts
     set_instance_vars details, opts
-    base_url = Rails.application.routes.url_helpers.count_regions_url(@type, {:host => opts[:host], :format => :json})
+    base_url = Rails.application.routes.url_helpers.count_regions_url(@type, {:host => opts[:host], :format => @format})
     results = super(details, opts)
     wrap_count_results results, base_url
   end
 
   def get_all details, opts
     results = do_get_all details, opts
-    
-    base_url = Rails.application.routes.url_helpers.get_all_regions_url(@type, {:host => opts[:host], :format => :json, :detail => @detail})
+
+    base_url = Rails.application.routes.url_helpers.get_all_regions_url(@type, {:host => opts[:host], :format => @format, :detail => @detail})
 
     wrap_results(results, base_url)
   end
@@ -49,5 +49,5 @@ class RegionService < AbstractService
     RegionService.is_eldis_id?(region_id) ? "http://linked-development.org/eldis/geography/#{region_id}/" : nil
   end
 
-  
+
 end

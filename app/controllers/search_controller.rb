@@ -7,10 +7,10 @@ class SearchController < ApplicationController
     detail = params[:detail]
 
     query_parameters = merge_present_params(params)
-    
+
     if(query_parameters[:q] || query_parameters[:theme] || query_parameters[:country] || query_parameters[:region] || query_parameters['iati-identifier'])
       @document = service.search(graph_type, query_parameters, detail,
-                                 {host: request.env["HTTP_HOST"], limit: params[:num_results], offset: params[:start_offset]})
+                                 {host: request.env["HTTP_HOST"], limit: params[:num_results], offset: params[:start_offset], format: params[:format]})
       respond_with @document
     else
       respond_with(error_message("You have not included any search parameters.  You must include at least one search parameter of 'q', 'theme', 'region', 'country' or 'iati-identifier'."), :status => 400)

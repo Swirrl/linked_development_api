@@ -5,7 +5,7 @@ class CountController < ApplicationController
   end
 
   def regions
-    get_it_from RegionService    
+    get_it_from RegionService
   end
 
   def countries
@@ -13,13 +13,13 @@ class CountController < ApplicationController
   end
 
   private
-  
+
   def get_it_from klass
     service = klass.build
     @document = service.count({:type => params[:graph]},
-                              {host: request.env["HTTP_HOST"], limit: params[:num_results], offset: params[:start_offset]})
-    
+                              {host: request.env["HTTP_HOST"], limit: params[:num_results], offset: params[:start_offset], format: params[:format]})
+
     respond_with @document
   end
-  
+
 end
