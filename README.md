@@ -1,4 +1,8 @@
-# Linked Development
+# The Research Documents API
+
+This repository contains the code powering the [Linked Development](http://linked-development.org/) [Research Documents API](http://linkeddev.swirrl.com/linked-development-api/docs).
+
+This API is written in [Ruby on Rails](http://rubyonrails.org/).
 
 ## Importing initial data
 
