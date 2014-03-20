@@ -2,7 +2,8 @@
 
 This repository contains the code powering the [Linked Development](http://linked-development.org/) [Research Documents API](http://linkeddev.swirrl.com/linked-development-api/docs).
 
-This API is written in [Ruby on Rails](http://rubyonrails.org/).
+This API was written in [Ruby on Rails](http://rubyonrails.org/) by
+[Swirrl](http://swirrl.com/) on behalf of [CABI](http://cabi.org/) and the [Department for International Development](https://www.gov.uk/government/organisations/department-for-international-development).
 
 ## Importing initial data
 
