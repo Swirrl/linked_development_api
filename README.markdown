@@ -10,7 +10,7 @@ Note that the initial tests are written against existing sample API output, so y
 
     rake data:load:test
 
-These commands import the data into a PMD compatible graph with the following URI's: 
+These commands import the data into a PMD compatible graph with the following URI's:
 
 - http://linked-development.org/graph/eldis
 - http://linked-development.org/graph/r4d
@@ -25,10 +25,6 @@ This implementation fixes a number of issues which were present in the
 original PHP code base.  These changes may break backwards
 compatability with existing client implementations, so they have been
 documented here.
-
-### General Changes (Across all applicable routes)
-
-- TODO
 
 ### Documents
 
@@ -49,11 +45,6 @@ documented here.
   are not explicitly represented, we return a level of 0, which we
   also use to refer to an eldis topLevel theme.
 
-### Countries
-
-### Research Outputs
-
-
 ### Count
 
 - count now returns counts as JSON integers not strings for all count routes.
@@ -61,3 +52,9 @@ documented here.
 - count/country now returns an object_type of 'country' not 'countries'.
 
 - all count routes now support pagination.
+
+## LICENCE
+
+Copyright (c) 2014 CABI & DFID.
+
+This program is distributed under the MIT Licence.
